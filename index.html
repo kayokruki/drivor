@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Drivor — Gerenciador Financeiro Simples</title>
+  <meta name="description" content="Drivor: controle de receitas, despesas e relatório simples para pequenas empresas" />
+  <!-- Fonte do sistema e CSS simples. Foco em legibilidade e contraste -->
+  <style>
+    :root{
+      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; --accent:#0f766e; --danger:#dc2626; --success:#16a34a;
+      --radius:12px; --gap:16px; --maxw:1100px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: light;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .container{width:100%; max-width:var(--maxw)}
+
+    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
+    .logo{display:flex; align-items:center; gap:12px}
+    .brand{font-weight:700; font-size:20px}
+    .subtitle{color:var(--muted); font-size:13px}
+
+    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
+    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+
+    /* Dashboard */
+    .balances{display:flex; gap:12px; margin-bottom:16px}
+    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px}
+    .bal-title{font-size:12px; color:var(--muted)}
+    .bal-value{font-weight:700; font-size:20px}
+
+    /* Form */
+    label{display:block; font-size:13px; margin-bottom:8px}
+    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
+    }
+    .row{display:flex; gap:12px}
+    .row .col{flex:1}
+    .actions{display:flex; gap:10px; margin-top:10px}
+    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
+    button.secondary{background:transparent; color:var(--accent); border:1px solid #cde7e2}
+    button.danger{background:var(--danger)}
+
+    /* Transactions */
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
+    th{font-weight:600; font-size:13px; color:var(--muted)}
+    .amount{font-weight:700}
+    .credit{color:var(--success)}
+    .debit{color:var(--danger)}
+
+    /* Small screens */
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+      .balances{flex-direction:column}
+    }
+
+    /* a11y focus */
+    :focus{outline:3px solid rgba(15,118,110,0.18); outline-offset:2px}
+
+    /* Help text */
+    .help{font-size:13px; color:var(--muted)}
+    .compact{font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect width="24" height="24" rx="6" fill="#0f766e"></rect>
+          <path d="M6 14l3-3 2 2 6-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div>
+          <div class="brand">Drivor</div>
+          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
+        </div>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
+        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
+        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
+      </div>
+    </header>
+
+    <main class="grid" role="main">
+      <section class="card" aria-labelledby="dashboardTitle">
+        <h2 id="dashboardTitle">Visão geral</h2>
+        <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
+
+        <div class="balances" style="margin-top:12px">
+          <div class="balance" aria-live="polite">
+            <div class="bal-title">Saldo</div>
+            <div id="saldo" class="bal-value">R$ 0,00</div>
+          </div>
+          <div class="balance">
+            <div class="bal-title">Receitas (últimos 30 dias)</div>
+            <div id="receitas" class="bal-value">R$ 0,00</div>
+          </div>
+          <div class="balance">
+            <div class="bal-title">Despesas (últimos 30 dias)</div>
+            <div id="despesas" class="bal-value">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <canvas id="summaryChart" height="140" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+        </div>
+
+        <div style="margin-top:16px">
+          <h3 class="compact">Últimas transações</h3>
+          <div style="overflow:auto; max-height:260px; margin-top:8px">
+            <table id="txTable" aria-live="polite">
+              <thead>
+                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card" aria-labelledby="formTitle">
+        <h2 id="formTitle">Adicionar transação</h2>
+        <form id="txForm">
+          <label for="type">Tipo</label>
+          <select id="type" required aria-required="true">
+            <option value="credit">Receita</option>
+            <option value="debit">Despesa</option>
+          </select>
+
+          <label for="date">Data</label>
+          <input type="date" id="date" required />
+
+          <label for="desc">Descrição</label>
+          <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
+
+          <label for="category">Categoria</label>
+          <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
+
+          <label for="amount">Valor (R$)</label>
+          <input type="number" id="amount" step="0.01" placeholder="0.00" required />
+
+          <div class="actions">
+            <button type="submit" aria-label="Salvar transação">Salvar</button>
+            <button type="button" id="clearBtn" class="secondary">Limpar</button>
+          </div>
+        </form>
+
+        <hr style="margin:14px 0" />
+
+        <div>
+          <h3 class="compact">Importante</h3>
+          <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
+          <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Simple modal for help -->
+    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center;">
+      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3>Ajuda — Como usar</h3>
+          <button id="closeHelp" class="secondary">Fechar</button>
+        </div>
+        <div style="margin-top:8px">
+          <ol>
+            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
+            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
+            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Chart.js via CDN (pequeno e comum). Se preferir, remova e o app continuará a funcionar sem gráfico. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // --- Utilitários ---
+    const $ = selector => document.querySelector(selector);
+    const qs = selector => document.querySelectorAll(selector);
+
+    // Form elements
+    const txForm = $('#txForm');
+    const typeEl = $('#type');
+    const dateEl = $('#date');
+    const descEl = $('#desc');
+    const catEl = $('#category');
+    const amountEl = $('#amount');
+    const txTableBody = $('#txTable tbody');
+
+    const SALTO_KEY = 'drivor_tx_v1';
+
+    // carregando dados do localStorage
+    function loadTx(){
+      try{
+        const raw = localStorage.getItem(SALTO_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        console.error('Erro ao carregar dados', e);
+        return [];
+      }
+    }
+    function saveTx(list){
+      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
+    }
+
+    // form reset simples
+    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
+
+    // adicionar transação
+    txForm.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+      const tx = {
+        id: Date.now(),
+        type: typeEl.value, // credit | debit
+        date: dateEl.value || new Date().toISOString().slice(0,10),
+        desc: descEl.value.trim() || '(sem descrição)',
+        category: catEl.value.trim() || 'Outros',
+        amount: Number(amountEl.value) || 0
+      };
+      const list = loadTx();
+      list.push(tx);
+      saveTx(list);
+      txForm.reset();
+      render();
+      // foco no primeiro campo para fluxo rápido
+      typeEl.focus();
+    });
+
+    // remover transação
+    function removeTx(id){
+      const list = loadTx().filter(t => t.id !== id);
+      saveTx(list);
+      render();
+    }
+
+    // converter para real formatado
+    function formatBRL(v){
+      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    }
+
+    // sumarizar
+    function summarize(list){
+      let saldo = 0, receitas = 0, despesas = 0;
+      const last30 = new Date(); last30.setDate(last30.getDate()-30);
+      let receitas30 = 0, despesas30 = 0;
+      list.forEach(t => {
+        if(t.type === 'credit'){
+          saldo += t.amount; receitas += t.amount;
+          if(new Date(t.date) >= last30) receitas30 += t.amount;
+        }else{
+          saldo -= t.amount; despesas += t.amount;
+          if(new Date(t.date) >= last30) despesas30 += t.amount;
+        }
+      });
+      return {saldo, receitas, despesas, receitas30, despesas30};
+    }
+
+    // render tabela e valores
+    function render(){
+      const list = loadTx().sort((a,b)=> b.id - a.id);
+      // tabela
+      txTableBody.innerHTML = '';
+      for(const t of list){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${t.date}</td>
+          <td>${escapeHtml(t.desc)}</td>
+          <td>${escapeHtml(t.category)}</td>
+          <td class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
+          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
+        `;
+        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
+        txTableBody.appendChild(tr);
+      }
+
+      // summary
+      const s = summarize(list);
+      $('#saldo').textContent = formatBRL(s.saldo);
+      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
+
+      // gráfico
+      updateChart(list);
+    }
+
+    // proteção simples contra XSS quando inserimos texto no HTML
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // Export CSV
+    $('#exportBtn').addEventListener('click', ()=>{
+      const list = loadTx();
+      if(!list.length){ alert('Não há dados para exportar.'); return; }
+      const header = ['id','date','type','description','category','amount'];
+      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
+      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `drivor-export-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // Help modal
+    const helpModal = $('#helpModal');
+    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
+    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
+    function showHelp(show){
+      helpModal.style.display = show ? 'flex' : 'none';
+      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+
+    // --- Chart support ---
+    let chart = null;
+    function updateChart(list){
+      // cria dataset diário com últimos 30 dias
+      const days = 30;
+      const map = {};
+      for(let i=days-1;i>=0;i--){
+        const d = new Date(); d.setDate(d.getDate()-i);
+        const key = d.toISOString().slice(0,10);
+        map[key] = {credit:0, debit:0};
+      }
+      list.forEach(t => {
+        if(map[t.date]){
+          if(t.type === 'credit') map[t.date].credit += t.amount;
+          else map[t.date].debit += t.amount;
+        }
+      });
+      const labels = Object.keys(map);
+      const credits = labels.map(l => map[l].credit);
+      const debits = labels.map(l => map[l].debit);
+
+      const ctx = document.getElementById('summaryChart').getContext('2d');
+      if(chart) chart.destroy();
+      try{
+        chart = new Chart(ctx, {
+          type:'bar',
+          data:{
+            labels,
+            datasets:[
+              {label:'Receitas', data:credits, backgroundColor:'rgba(16,118,110,0.8)'},
+              {label:'Despesas', data:debits, backgroundColor:'rgba(220,38,38,0.8)'}
+            ]
+          },
+          options:{
+            responsive:true, maintainAspectRatio:false,
+            scales:{x:{display:true}, y:{display:true}},
+            plugins:{legend:{position:'bottom'}}
+          }
+        });
+      }catch(e){
+        console.warn('Chart.js ausente ou falha ao desenhar o gráfico', e);
+      }
+    }
+
+    // inicializa data hoje no campo se vazio
+    (function init(){
+      if(!$('#date').value) $('#date').value = new Date().toISOString().slice(0,10);
+      render();
+    })();
+  </script>
+</body>
+</html>

@@ -126,22 +126,25 @@
     @media (max-width:900px){
       /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
       .grid{grid-template-columns:1fr;}
-      .balances{flex-direction:column}
+      .balances{
+          flex-direction:column; /* Saldos um abaixo do outro */
+          gap: 8px; /* Diminui o espaço entre os saldos */
+      }
+      .balance{
+          padding: 12px; /* Diminui o padding do saldo */
+      }
       .chart-wrapper{
           margin-left: 0;
           margin-right: 0;
           padding: 0 0 18px 0;
       }
       
-      /* ESTILOS DE TABELA RESPONSIVA PARA O ESTOQUE */
-      #stock-content .card{
-          padding: 18px; /* Restaura o padding do cartão */
-      }
-      #stockTable{
+      /* ESTILOS DE TABELA RESPONSIVA: GERAL (APLICADO A #stockTable E #txTable) */
+      table:not(.responsive-table-ignore) {
           border: 0; /* Remove bordas da tabela principal */
-          font-size: 15px; /* Aumenta um pouco para melhor leitura */
+          font-size: 15px;
       }
-      #stockTable thead{
+      table:not(.responsive-table-ignore) thead{
           /* Oculta os cabeçalhos originais em mobile */
           border: none;
           clip: rect(0 0 0 0);
@@ -152,7 +155,7 @@
           position: absolute;
           width: 1px;
       }
-      #stockTable tr{
+      table:not(.responsive-table-ignore) tr{
           display: block; /* Cada linha vira um bloco (o cartão) */
           margin-bottom: 12px;
           border: 1px solid #eef2f6;
@@ -160,39 +163,47 @@
           padding: 8px 12px;
           box-shadow: 0 1px 4px rgba(2,6,23,0.04);
       }
-      #stockTable td{
+      table:not(.responsive-table-ignore) td{
           display: block; /* Cada célula de dado vira uma linha separada */
           border-bottom: 1px solid #eef2f6;
           text-align: right;
           padding: 6px 0;
           
       }
-      #stockTable tr:last-child {
+      table:not(.responsive-table-ignore) tr:last-child {
           margin-bottom: 0; 
       }
-      #stockTable td:last-child{
+      table:not(.responsive-table-ignore) td:last-child{
           border-bottom: 0; 
           text-align: left;
           padding-top: 10px;
       }
       
-      /* Adiciona o rótulo da coluna (Cód., Qtde, etc.) antes do dado */
-      #stockTable td::before{
+      /* Adiciona o rótulo da coluna (data-label) antes do dado */
+      table:not(.responsive-table-ignore) td::before{
           content: attr(data-label);
           float: left;
           font-weight: bold;
           color: var(--muted);
           margin-right: 8px;
       }
-      #stockTable td:last-child button {
+      table:not(.responsive-table-ignore) td:last-child button {
           width: 100%; /* Botão "Remover" fica em largura total */
-          background-color: var(--danger);
+          /* Estilo padrão é o Danger do Estoque, mas será sobrescrito abaixo para o Dashboard */
+          background-color: var(--danger); 
       }
       
-      /* Remove o overflow:auto da div, pois não precisamos mais de scroll horizontal */
+      /* Remove o overflow:auto para as divs que continham as tabelas */
+      .transactions-wrapper > div[style*="overflow:auto"],
       #stock-content div[style*="overflow:auto"]{
           overflow: visible !important;
           padding: 0 !important;
+          max-height: none !important; 
+      }
+      
+      /* Estilo Específico para o botão "Remover" da Transação */
+      #txTable td:last-child button {
+          background-color: var(--accent); 
       }
     }
 
@@ -528,7 +539,7 @@
     }
 
     // ------------------------------------
-    // LÓGICA DE FINANÇAS (MANTIDA)
+    // LÓGICA DE FINANÇAS (MANTIDA E ATUALIZADA)
     // ------------------------------------
 
     function loadTx(){
@@ -717,11 +728,12 @@
       txTableBody.innerHTML = '';
       for(const t of list){
         const tr = document.createElement('tr');
+        // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
         tr.innerHTML = `
-          <td>${t.date}</td>
-          <td>${escapeHtml(t.desc)}</td>
-          <td>${escapeHtml(t.category)}</td>
-          <td class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
+          <td data-label="Data:">${t.date}</td>
+          <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
+          <td data-label="Cat.:">${escapeHtml(t.category)}</td>
+          <td data-label="Valor:" class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
           <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
         `;
         tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));

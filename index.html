@@ -124,12 +124,29 @@
 
     /* Small screens */
     @media (max-width:900px){
+      /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
       .grid{grid-template-columns:1fr;}
       .balances{flex-direction:column}
       .chart-wrapper{
           margin-left: 0;
           margin-right: 0;
           padding: 0 0 18px 0;
+      }
+      
+      /* ESTILOS ESPECÍFICOS PARA O ESTOQUE EM TELA PEQUENA */
+      #stock-content .card:first-child{
+          /* Remove o padding horizontal para que o scroll lateral ocupe a largura máxima */
+          padding-left: 0;
+          padding-right: 0;
+      }
+      #stock-content table{
+          /* Garante uma largura mínima para que a tabela não esprema */
+          width: 100%;
+          min-width: 650px; 
+      }
+      #stock-content div[style*="overflow:auto"]{
+          /* Adiciona um padding para a rolagem lateral não encostar nas bordas da tela */
+          padding: 0 18px; 
       }
     }
 
@@ -356,15 +373,15 @@
     const txTableBody = $('#txTable tbody');
     const SALTO_KEY = 'drivor_tx_v1';
 
-    // ESTOQUE (NOVAS VARIÁVEIS)
+    // ESTOQUE
     const stockForm = $('#stockForm');
     const stockCodeEl = $('#stockCode');
     const stockNameEl = $('#stockName');
     const stockCategoryEl = $('#stockCategory');
-    const stockPriceEl = $('#stockPrice'); // Novo elemento de preço
+    const stockPriceEl = $('#stockPrice'); 
     const stockQuantityEl = $('#stockQuantity');
     const stockTableBody = $('#stockTable tbody');
-    const stockFilterEl = $('#stockFilter'); // Novo elemento de filtro
+    const stockFilterEl = $('#stockFilter'); 
     const STOCK_KEY = 'katalis_stock_v1'; 
 
     // ------------------------------------
@@ -389,7 +406,7 @@
         const itemCode = stockCodeEl.value.trim().toUpperCase();
         const itemName = stockNameEl.value.trim();
         const itemCat = stockCategoryEl.value.trim() || 'Geral';
-        const itemPrice = Number(stockPriceEl.value) || 0; // Novo
+        const itemPrice = Number(stockPriceEl.value) || 0; 
         const itemQty = Number(stockQuantityEl.value) || 0;
         
         const list = loadStock();
@@ -399,7 +416,7 @@
             code: itemCode,
             name: itemName,
             category: itemCat,
-            price: itemPrice, // Novo
+            price: itemPrice, 
             quantity: itemQty
         };
 
@@ -446,7 +463,7 @@
         for(const item of list){
             const isLowStock = item.quantity < 5;
             const quantityClass = isLowStock ? 'low-stock' : '';
-            const totalValue = item.price * item.quantity; // Cálculo do valor total
+            const totalValue = item.price * item.quantity; 
 
             const tr = document.createElement('tr');
             tr.innerHTML = `

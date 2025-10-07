@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Katalis — Gerenciador Financeiro Simples</title>
   <meta name="description" content="Katalis: controle de receitas, despesas e relatório simples para pequenas empresas" />
+  
+  <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-48x48.png" sizes="48x48" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="images/favicons/katalis-apple-touch-icon.png">
+  <link rel="manifest" href="images/favicons/site.webmanifest">
   <style>
     :root{
       --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
@@ -313,7 +320,7 @@
       const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; // NOME DO ARQUIVO ATUALIZADO
+      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; 
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
@@ -354,7 +361,6 @@
             labels: ['Receitas', 'Despesas'],
             datasets: [{
                 data: [totalCredits, totalDebits],
-                // Receitas em VERDE, Despesas em VERMELHO
                 backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
                 borderColor: ['#16a34a', 'rgba(220,38,38,1)']
             }]

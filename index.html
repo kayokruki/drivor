@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Drivor — Gerenciador Financeiro Simples</title>
   <meta name="description" content="Drivor: controle de receitas, despesas e relatório simples para pequenas empresas" />
-  <!-- Fonte do sistema e CSS simples. Foco em legibilidade e contraste -->
   <style>
     :root{
       --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; --accent:#0f766e; --danger:#dc2626; --success:#16a34a;
@@ -108,12 +107,11 @@
           </div>
         </div>
 
-        <!-- Gráfico atualizado com alternância -->
         <div style="margin-top:16px" class="chart-wrapper">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
             <h3 class="compact">Resumo financeiro</h3>
             <button id="toggleChart" class="secondary" aria-label="Alternar tipo de gráfico">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3v8H3M21 3v8h-8M3 21v-8h8M21 21v-8h-8"/>
               </svg>
             </button>
@@ -171,8 +169,7 @@
       </aside>
     </main>
 
-    <!-- Simple modal for help -->
-    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center;">
+    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
       <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
         <div style="display:flex; justify-content:space-between; align-items:center">
           <h3>Ajuda — Como usar</h3>
@@ -298,8 +295,8 @@
 
     // --- Chart support ---
     let chart = null;
-    const chartTypes = ['bar','line','pie'];
-    let currentChartIndex = 0;
+    const chartTypes = ['bar','line','pie']; // Tipos de gráfico disponíveis
+    let currentChartIndex = 0; // Índice do tipo de gráfico atual
 
     function updateChart(list){
       const days = 30;
@@ -310,9 +307,14 @@
         map[key] = {credit:0, debit:0};
       }
       list.forEach(t => {
-        if(map[t.date]){
-          if(t.type === 'credit') map[t.date].credit += t.amount;
-          else map[t.date].debit += t.amount;
+        // Filtrar transações apenas dos últimos 30 dias para o gráfico (para consistência)
+        const date30Days = new Date();
+        date30Days.setDate(date30Days.getDate() - days);
+        if (new Date(t.date) >= date30Days) {
+            if(map[t.date]){
+              if(t.type === 'credit') map[t.date].credit += t.amount;
+              else map[t.date].debit += t.amount;
+            }
         }
       });
 
@@ -321,10 +323,12 @@
       const debits = labels.map(l => map[l].debit);
 
       const ctx = document.getElementById('summaryChart').getContext('2d');
-      if(chart) chart.destroy();
+      if(chart) chart.destroy(); // Destruir o gráfico anterior antes de criar um novo
 
-      chart = new Chart(ctx, {
-        type: chartTypes[currentChartIndex],
+      const currentType = chartTypes[currentChartIndex];
+
+      let chartConfig = {
+        type: currentType,
         data: {
           labels,
           datasets: [
@@ -335,16 +339,50 @@
         options: {
           responsive:true, maintainAspectRatio:false,
           plugins:{legend:{position:'bottom'}},
-          scales: chartTypes[currentChartIndex]==='pie' ? {} : {x:{display:true}, y:{display:true}}
+          // Ajusta as escalas para gráficos de pizza
+          scales: currentType === 'pie' ? {} : {x:{display:true}, y:{display:true}}
         }
-      });
+      };
+
+      // Lógica específica para Gráfico de Pizza (Pie Chart)
+      if (currentType === 'pie') {
+          // Para gráfico de pizza, somamos todos os valores do período (30 dias)
+          const totalCredits = credits.reduce((sum, val) => sum + val, 0);
+          const totalDebits = debits.reduce((sum, val) => sum + val, 0);
+
+          chartConfig.data = {
+              labels: ['Receitas', 'Despesas'],
+              datasets: [{
+                  data: [totalCredits, totalDebits],
+                  backgroundColor: ['rgba(16,118,110,0.8)', 'rgba(220,38,38,0.8)'],
+                  borderColor: ['rgba(16,118,110,1)', 'rgba(220,38,38,1)']
+              }]
+          };
+          // Adiciona formatação BRL para o tooltip da pizza
+          chartConfig.options.plugins.tooltip = {
+            callbacks: {
+              label: function(context) {
+                let label = context.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed !== null) {
+                  label += formatBRL(context.parsed);
+                }
+                return label;
+              }
+            }
+          };
+      }
+
+      chart = new Chart(ctx, chartConfig);
     }
 
     document.getElementById('toggleChart').addEventListener('click', ()=>{
-      currentChartIndex = (currentChartIndex + 1) % chartTypes.length;
-      render();
+      currentChartIndex = (currentChartIndex + 1) % chartTypes.length; // Avança para o próximo tipo
+      render(); // Redesenha a interface
     });
-
+    
     function render(){
       const list = loadTx().sort((a,b)=> b.id - a.id);
       txTableBody.innerHTML = '';
@@ -364,6 +402,16 @@
       const s = summarize(list);
       $('#saldo').textContent = formatBRL(s.saldo);
       $('#receitas').textContent = formatBRL(s.receitas30 || 0);
-      $('#despesas').textContent = formatBRL(s.despesas
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0); // Correção: usava 'despesas' total, agora usa 'despesas30'
 
-                                             </script>
+      updateChart(list); // Chama a função do gráfico
+    }
+
+    // Inicializa o app
+    render();
+
+    // Seta a data de hoje no campo de data por padrão
+    dateEl.value = new Date().toISOString().slice(0,10);
+  </script>
+</body>
+</html>

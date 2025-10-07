@@ -33,9 +33,21 @@
     .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px}
     .bal-title{font-size:12px; color:var(--muted)}
     .bal-value{font-weight:700; font-size:20px}
-
-    /* O elemento chart-wrapper não precisa mais de altura fixa, 
-       deixando o Chart.js dimensionar o canvas corretamente */
+    
+    /* Correção de Altura do Gráfico: Solução Definitiva */
+    .chart-wrapper{
+      /* Define uma altura absoluta para o contêiner. */
+      height: 180px; 
+      /* Adicionamos margem negativa para compensar o padding do .card e usar a largura total */
+      margin-left: -18px;
+      margin-right: -18px;
+      padding: 0 18px;
+    }
+    #summaryChart{
+      /* Garante que o canvas ocupe 100% da altura do wrapper pai (180px) */
+      height: 100% !important; 
+      width: 100% !important;
+    }
 
     /* Form */
     label{display:block; font-size:13px; margin-bottom:8px}
@@ -61,6 +73,11 @@
     @media (max-width:900px){
       .grid{grid-template-columns:1fr;}
       .balances{flex-direction:column}
+      .chart-wrapper{
+          margin-left: 0;
+          margin-right: 0;
+          padding: 0;
+      }
     }
 
     /* a11y focus */
@@ -111,7 +128,7 @@
         </div>
 
         <div style="margin-top:16px" class="chart-wrapper">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
             <h3 class="compact">Resumo financeiro</h3>
             <button id="toggleChart" class="secondary" aria-label="Alternar tipo de gráfico">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -119,7 +136,7 @@
               </svg>
             </button>
           </div>
-          <canvas id="summaryChart" height="140" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+          <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
         </div>
 
         <div style="margin-top:16px">
@@ -341,7 +358,7 @@
         },
         options: {
           responsive:true, 
-          maintainAspectRatio:false, // ESSA OPÇÃO É CRÍTICA: deve ser false para ignorar a proporção e respeitar o 'height' do HTML
+          maintainAspectRatio:false, 
           plugins:{legend:{position:'bottom'}},
           // Ajusta as escalas para gráficos de pizza
           scales: currentType === 'pie' ? {} : {x:{display:true}, y:{display:true}}

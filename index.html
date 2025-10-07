@@ -133,20 +133,66 @@
           padding: 0 0 18px 0;
       }
       
-      /* ESTILOS ESPECÍFICOS PARA O ESTOQUE EM TELA PEQUENA */
-      #stock-content .card:first-child{
-          /* Remove o padding horizontal para que o scroll lateral ocupe a largura máxima */
-          padding-left: 0;
-          padding-right: 0;
+      /* ESTILOS DE TABELA RESPONSIVA PARA O ESTOQUE */
+      #stock-content .card{
+          padding: 18px; /* Restaura o padding do cartão */
       }
-      #stock-content table{
-          /* Garante uma largura mínima para que a tabela não esprema */
-          width: 100%;
-          min-width: 650px; 
+      #stockTable{
+          border: 0; /* Remove bordas da tabela principal */
+          font-size: 15px; /* Aumenta um pouco para melhor leitura */
       }
+      #stockTable thead{
+          /* Oculta os cabeçalhos originais em mobile */
+          border: none;
+          clip: rect(0 0 0 0);
+          height: 1px;
+          margin: -1px;
+          overflow: hidden;
+          padding: 0;
+          position: absolute;
+          width: 1px;
+      }
+      #stockTable tr{
+          display: block; /* Cada linha vira um bloco (o cartão) */
+          margin-bottom: 12px;
+          border: 1px solid #eef2f6;
+          border-radius: var(--radius);
+          padding: 8px 12px;
+          box-shadow: 0 1px 4px rgba(2,6,23,0.04);
+      }
+      #stockTable td{
+          display: block; /* Cada célula de dado vira uma linha separada */
+          border-bottom: 1px solid #eef2f6;
+          text-align: right;
+          padding: 6px 0;
+          
+      }
+      #stockTable tr:last-child {
+          margin-bottom: 0; 
+      }
+      #stockTable td:last-child{
+          border-bottom: 0; 
+          text-align: left;
+          padding-top: 10px;
+      }
+      
+      /* Adiciona o rótulo da coluna (Cód., Qtde, etc.) antes do dado */
+      #stockTable td::before{
+          content: attr(data-label);
+          float: left;
+          font-weight: bold;
+          color: var(--muted);
+          margin-right: 8px;
+      }
+      #stockTable td:last-child button {
+          width: 100%; /* Botão "Remover" fica em largura total */
+          background-color: var(--danger);
+      }
+      
+      /* Remove o overflow:auto da div, pois não precisamos mais de scroll horizontal */
       #stock-content div[style*="overflow:auto"]{
-          /* Adiciona um padding para a rolagem lateral não encostar nas bordas da tela */
-          padding: 0 18px; 
+          overflow: visible !important;
+          padding: 0 !important;
       }
     }
 
@@ -466,13 +512,14 @@
             const totalValue = item.price * item.quantity; 
 
             const tr = document.createElement('tr');
+            // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
             tr.innerHTML = `
-                <td>${escapeHtml(item.code)}</td>
-                <td>${escapeHtml(item.name)}</td>
-                <td>${escapeHtml(item.category)}</td>
-                <td class="${quantityClass}">${item.quantity}</td>
-                <td>${formatBRL(item.price)}</td>
-                <td class="stock-total-value">${formatBRL(totalValue)}</td>
+                <td data-label="Cód:">${escapeHtml(item.code)}</td>
+                <td data-label="Produto:">${escapeHtml(item.name)}</td>
+                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
+                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
+                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
+                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
                 <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
             `;
             tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));

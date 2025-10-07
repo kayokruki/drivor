@@ -208,7 +208,12 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
   <script>
+    // Configura o moment.js para o português, necessário para exibir os nomes dos meses
+    moment.locale('pt-br'); 
+    
     // --- Utilitários ---
     const $ = selector => document.querySelector(selector);
     const qs = selector => document.querySelectorAll(selector);
@@ -319,13 +324,27 @@
     let currentChartIndex = 0; // Índice do tipo de gráfico atual
 
     function updateChart(list){
+      // Para mostrar meses, vamos usar todos os dados em vez de apenas os últimos 30 dias para o eixo X.
+      // E para o gráfico, vamos focar nos últimos 30 dias para os valores (receitas/despesas).
       const days = 30;
       const map = {};
+      const datesToProcess = [];
+
+      // 1. Coletar todas as datas únicas de transações para o eixo X
+      list.forEach(t => {
+          if (!datesToProcess.includes(t.date)) {
+              datesToProcess.push(t.date);
+          }
+      });
+      datesToProcess.sort();
+      
+      // 2. Preencher o mapa de dados apenas para os últimos 30 dias para a visualização
       for(let i=days-1;i>=0;i--){
         const d = new Date(); d.setDate(d.getDate()-i);
         const key = d.toISOString().slice(0,10);
         map[key] = {credit:0, debit:0};
       }
+      
       list.forEach(t => {
         // Filtrar transações apenas dos últimos 30 dias para o gráfico (para consistência)
         const date30Days = new Date();
@@ -337,10 +356,16 @@
             }
         }
       });
-
-      const labels = Object.keys(map);
+      
+      // Se não houver dados nos últimos 30 dias, use todas as datas únicas para o eixo
+      // mas os valores do gráfico (credits/debits) serão 0
+      const labels = Object.keys(map).sort(); // Datas dos últimos 30 dias
       const credits = labels.map(l => map[l].credit);
       const debits = labels.map(l => map[l].debit);
+      
+      // === NOVO: Lógica para Gráfico de Meses ===
+      const firstDate = labels[0];
+      const lastDate = labels[labels.length - 1];
 
       const ctx = document.getElementById('summaryChart').getContext('2d');
       if(chart) chart.destroy(); // Destruir o gráfico anterior antes de criar um novo
@@ -350,7 +375,8 @@
       let chartConfig = {
         type: currentType,
         data: {
-          labels,
+          // Os labels precisam ser datas (strings YYYY-MM-DD) para o adapter funcionar
+          labels: labels, 
           datasets: [
             {label:'Receitas', data:credits, backgroundColor:'rgba(16,118,110,0.8)', borderColor:'rgba(16,118,110,1)', fill:false},
             {label:'Despesas', data:debits, backgroundColor:'rgba(220,38,38,0.8)', borderColor:'rgba(220,38,38,1)', fill:false}
@@ -359,15 +385,57 @@
         options: {
           responsive:true, 
           maintainAspectRatio:false, 
-          plugins:{legend:{position:'bottom'}},
-          // Ajusta as escalas para gráficos de pizza
-          scales: currentType === 'pie' ? {} : {x:{display:true}, y:{display:true}}
+          plugins:{
+            legend:{position:'bottom'},
+            tooltip: { // Configurações para o Tooltip
+                callbacks: {
+                    title: function(tooltipItems) {
+                        // Formata a data para Mês/Ano no Tooltip
+                        return moment(tooltipItems[0].label).format('MMM YYYY');
+                    }
+                }
+            }
+          },
+          scales: currentType === 'pie' ? {} : {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'month', // <--- Principal mudança: Mudar a unidade de exibição para MÊS
+                displayFormats: {
+                    month: 'MMM YYYY' // Formato: Set 2025
+                },
+                tooltipFormat: 'MMM YYYY'
+              },
+              // Força o início e o fim do eixo para os dados de 30 dias
+              min: firstDate,
+              max: lastDate,
+              ticks: {
+                source: 'labels',
+                autoSkip: true,
+                maxRotation: 0,
+                minRotation: 0,
+                callback: function(value, index, values) {
+                    // Lógica para mostrar só um mês se for o caso:
+                    // Verifica se o próximo ponto é em outro mês. 
+                    // Se não for, não exibe. Isso simula o agrupamento.
+                    if (index === 0) return moment(value).format('MMM');
+                    const currentMonth = moment(value).format('YYYY-MM');
+                    const prevMonth = moment(values[index-1].value).format('YYYY-MM');
+                    if (currentMonth !== prevMonth) {
+                        return moment(value).format('MMM');
+                    }
+                    return null; // Oculta a data
+                }
+              }
+            }, 
+            y: {display:true}
+          }
         }
       };
 
-      // Lógica específica para Gráfico de Pizza (Pie Chart)
+      // Lógica específica para Gráfico de Pizza (Pie Chart) - INTACTA
       if (currentType === 'pie') {
-          // Para gráfico de pizza, somamos todos os valores do período (30 dias)
+          // ... (mesma lógica) ...
           const totalCredits = credits.reduce((sum, val) => sum + val, 0);
           const totalDebits = debits.reduce((sum, val) => sum + val, 0);
 
@@ -379,7 +447,6 @@
                   borderColor: ['rgba(16,118,110,1)', 'rgba(220,38,38,1)']
               }]
           };
-          // Adiciona formatação BRL para o tooltip da pizza
           chartConfig.options.plugins.tooltip = {
             callbacks: {
               label: function(context) {
@@ -394,6 +461,8 @@
               }
             }
           };
+          // Gráfico de pizza não precisa de escala X
+          chartConfig.options.scales = {};
       }
 
       chart = new Chart(ctx, chartConfig);

@@ -232,7 +232,7 @@
     const amountEl = $('#amount');
     const txTableBody = $('#txTable tbody');
 
-    const SALTO_KEY = 'katalis_tx_v1'; // Alterado de drivor_tx_v1
+    const SALTO_KEY = 'katalis_tx_v1'; // Alterado de 'drivor_tx_v1'
 
     function loadTx(){
       try{
@@ -394,7 +394,7 @@
         tr.innerHTML = `
           <td>${t.date}</td>
           <td>${escapeHtml(t.desc)}</td>
-          <td>${escapeHtml(t.category)}</td>
+            <td>${escapeHtml(t.category)}</td>
           <td class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
           <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
         `;

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Katalis — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas e relatório simples para pequenas empresas" />
+  <meta name="description" content="Katalis: controle de receitas, despesas e gestão de estoque para pequenas empresas" />
   
   <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
@@ -59,7 +59,7 @@
         padding-top: 10px; /* Espaço entre as abas e o conteúdo */
     }
 
-    /* Conteúdo do Dashboard */
+    /* Conteúdo do Dashboard e Estoque */
     .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
     .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
@@ -102,8 +102,16 @@
     button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
     button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
     button.danger{background:var(--danger)}
+    
+    /* Botão de Estoque (para visualmente ser diferente) */
+    .stock-action-btn{
+        background-color: var(--success);
+    }
+    .stock-action-btn:hover{
+        background-color: #118d3e; /* tom mais escuro do verde */
+    }
 
-    /* Transactions */
+    /* Transactions & Stock Table */
     table{width:100%; border-collapse:collapse; font-size:14px}
     th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
     th{font-weight:600; font-size:13px; color:var(--muted)}
@@ -111,6 +119,7 @@
     .amount{font-weight:700}
     .credit{color:var(--success)} 
     .debit{color:var(--danger)}
+    .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
 
     /* Small screens */
     @media (max-width:900px){
@@ -156,10 +165,10 @@
             <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
                 Dashboard
             </a>
-            <a class="tab-link" id="tab-transactions" data-tab-id="transactions" role="tab" aria-controls="transactions-content" aria-selected="false">
-                Transações
+            <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
+                Estoque
             </a>
-            </div>
+        </div>
     </nav>
 
     <main class="tab-content" role="main">
@@ -246,10 +255,51 @@
             </div>
         </section>
 
-        <section id="transactions-content" data-tab-content="transactions" class="tab-pane" style="display:none;">
-            <div class="card" style="padding: 40px; text-align: center;">
-                <h3>Transações Detalhadas</h3>
-                <p>Aqui você poderá ver, filtrar e editar todas as suas transações em uma lista completa. (Conteúdo a ser desenvolvido)</p>
+        <section id="stock-content" data-tab-content="stock" class="tab-pane" style="display:none;">
+            <div class="grid">
+                <section class="card" aria-labelledby="stockListTitle">
+                    <h2 id="stockListTitle">Itens em Estoque</h2>
+                    <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
+                    
+                    <div style="overflow:auto; margin-top:16px">
+                        <table id="stockTable" aria-live="polite">
+                            <thead>
+                                <tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Qtde</th><th></th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="card" aria-labelledby="stockFormTitle">
+                    <h2 id="stockFormTitle">Adicionar/Atualizar Item</h2>
+                    <form id="stockForm">
+                        <label for="stockCode">Código do Produto</label>
+                        <input type="text" id="stockCode" placeholder="Ex: A001" required />
+
+                        <label for="stockName">Nome do Produto</label>
+                        <input type="text" id="stockName" placeholder="Ex: Camiseta P" required />
+
+                        <label for="stockCategory">Categoria</label>
+                        <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
+
+                        <label for="stockQuantity">Quantidade</label>
+                        <input type="number" id="stockQuantity" min="0" placeholder="0" required />
+
+                        <div class="actions">
+                            <button type="submit" class="stock-action-btn" aria-label="Salvar item">Salvar Item</button>
+                            <button type="button" id="clearStockBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Dicas</h3>
+                        <p class="help">Use um código único para cada produto. Mantenha a quantidade atualizada para um controle preciso.</p>
+                        <p class="help" style="margin-top:8px">Produtos com quantidade **menor que 5** serão destacados em vermelho.</p>
+                    </div>
+                </aside>
             </div>
         </section>
     </main>
@@ -281,7 +331,7 @@
     const $ = selector => document.querySelector(selector);
     const qs = selector => document.querySelectorAll(selector);
 
-    // Form elements
+    // FINANCEIRO
     const txForm = $('#txForm');
     const typeEl = $('#type');
     const dateEl = $('#date');
@@ -289,16 +339,104 @@
     const catEl = $('#category');
     const amountEl = $('#amount');
     const txTableBody = $('#txTable tbody');
-
-    // ATENÇÃO: A chave de localStorage MANTÉM O NOME ANTIGO (drivor_tx_v1)
     const SALTO_KEY = 'drivor_tx_v1';
+
+    // ESTOQUE (NOVAS VARIÁVEIS)
+    const stockForm = $('#stockForm');
+    const stockCodeEl = $('#stockCode');
+    const stockNameEl = $('#stockName');
+    const stockCategoryEl = $('#stockCategory');
+    const stockQuantityEl = $('#stockQuantity');
+    const stockTableBody = $('#stockTable tbody');
+    const STOCK_KEY = 'katalis_stock_v1'; // Nova chave para o estoque
+
+    // ------------------------------------
+    // LÓGICA DE ESTOQUE (CRUD)
+    // ------------------------------------
+
+    function loadStock(){
+        try{
+            const raw = localStorage.getItem(STOCK_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar estoque', e);
+            return [];
+        }
+    }
+    function saveStock(list){
+        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    }
+
+    stockForm.addEventListener('submit', (ev)=>{
+        ev.preventDefault();
+        const itemCode = stockCodeEl.value.trim().toUpperCase();
+        const itemName = stockNameEl.value.trim();
+        const itemCat = stockCategoryEl.value.trim() || 'Geral';
+        const itemQty = Number(stockQuantityEl.value) || 0;
+        
+        const list = loadStock();
+        const existingIndex = list.findIndex(item => item.code === itemCode);
+
+        const newItem = {
+            code: itemCode,
+            name: itemName,
+            category: itemCat,
+            quantity: itemQty
+        };
+
+        if(existingIndex > -1){
+            // Atualiza item existente
+            list[existingIndex] = newItem;
+        } else {
+            // Adiciona novo item
+            list.push(newItem);
+        }
+
+        saveStock(list);
+        stockForm.reset();
+        renderStock();
+        stockCodeEl.focus();
+    });
+
+    $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
+
+    function removeItem(code){
+        const list = loadStock().filter(t => t.code !== code);
+        saveStock(list);
+        renderStock();
+    }
+
+    function renderStock(){
+        const list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+        stockTableBody.innerHTML = '';
+
+        for(const item of list){
+            const isLowStock = item.quantity < 5;
+            const quantityClass = isLowStock ? 'low-stock' : '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escapeHtml(item.code)}</td>
+                <td>${escapeHtml(item.name)}</td>
+                <td>${escapeHtml(item.category)}</td>
+                <td class="${quantityClass}">${item.quantity}</td>
+                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+            `;
+            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
+            stockTableBody.appendChild(tr);
+        }
+    }
+
+    // ------------------------------------
+    // LÓGICA DE FINANÇAS (MANTIDA)
+    // ------------------------------------
 
     function loadTx(){
       try{
         const raw = localStorage.getItem(SALTO_KEY);
         return raw ? JSON.parse(raw) : [];
       }catch(e){
-        console.error('Erro ao carregar dados', e);
+        console.error('Erro ao carregar dados financeiros', e);
         return [];
       }
     }
@@ -404,10 +542,12 @@
             e.target.setAttribute('aria-selected', 'true');
             $(`#${targetId}-content`).style.display = 'block';
             
-            // Se o dashboard for re-selecionado, garanta que o gráfico renderize corretamente
-            if (targetId === 'dashboard' && chart) {
-                // A função render() que contém updateChart() será chamada no final, mas o resize ajuda
-                chart.resize(); 
+            // Renderiza o conteúdo correto ao mudar de aba
+            if (targetId === 'dashboard') {
+                render(); 
+                if(chart) chart.resize();
+            } else if (targetId === 'stock') {
+                renderStock();
             }
         });
     });
@@ -426,7 +566,6 @@
       date30Days.setDate(date30Days.getDate() - days);
 
       list.forEach(t => {
-        // Apenas transações dos últimos 30 dias contam para a pizza
         if (new Date(t.date) >= date30Days) {
             if(t.type === 'credit') totalCredits += t.amount;
             else totalDebits += t.amount;
@@ -499,6 +638,8 @@
 
     // Inicializa o app
     render();
+    // Garante que o estoque também seja carregado (embora não esteja visível)
+    renderStock();
 
     // Seta a data de hoje no campo de data por padrão
     dateEl.value = new Date().toISOString().slice(0,10);

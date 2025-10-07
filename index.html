@@ -27,7 +27,7 @@
     html,body{height:100%}
     body{
       margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      -webkit-font-smoothing:antialiased; -moz-osx-smoothing:grayscale;
     }
     .container{width:100%; max-width:var(--maxw)}
 
@@ -36,6 +36,30 @@
     .brand{font-weight:700; font-size:20px}
     .subtitle{color:var(--muted); font-size:13px}
 
+    /* ESTILOS DAS ABAS (TABS) - MANTIDOS */
+    .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
+    .tabs-nav{display:flex; gap:20px;}
+    .tab-link{
+      padding: 10px 0;
+      color: var(--muted);
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s;
+    }
+    .tab-link:hover{
+        color: var(--accent);
+    }
+    .tab-link.active{
+        color: var(--accent);
+        border-bottom-color: var(--success); /* Use a cor verde da marca */
+        font-weight: 700;
+    }
+    .tab-content{
+        padding-top: 10px; /* Espaço entre as abas e o conteúdo */
+    }
+
+    /* Conteúdo do Dashboard */
     .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
     .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
@@ -111,9 +135,10 @@
   <div class="container">
     <header>
       <div class="logo">
-        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <rect width="24" height="24" rx="6" fill="#1d1d1d"></rect> 
-          <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true" focusable="false">
+            <rect width="44" height="44" rx="8" fill="#1d1d1d"/> 
+            <rect x="12" y="10" width="4" height="24" rx="2" fill="#fff" />
+            <path d="M19 14 L30 25 L19 36" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
         <div>
           <div class="brand">Katalis</div> 
@@ -126,87 +151,108 @@
       </div>
     </header>
 
-    <main class="grid" role="main">
-      <section class="card" aria-labelledby="dashboardTitle">
-        <h2 id="dashboardTitle">Visão geral</h2>
-        <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
+    <nav class="tabs" role="tablist">
+        <div class="tabs-nav">
+            <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
+                Dashboard
+            </a>
+            <a class="tab-link" id="tab-transactions" data-tab-id="transactions" role="tab" aria-controls="transactions-content" aria-selected="false">
+                Transações
+            </a>
+            </div>
+    </nav>
 
-        <div class="balances" style="margin-top:12px">
-          <div class="balance" aria-live="polite">
-            <div class="bal-title">Saldo</div>
-            <div id="saldo" class="bal-value">R$ 0,00</div>
-          </div>
-          <div class="balance">
-            <div class="bal-title">Receitas (últimos 30 dias)</div>
-            <div id="receitas" class="bal-value">R$ 0,00</div>
-          </div>
-          <div class="balance">
-            <div class="bal-title">Despesas (últimos 30 dias)</div>
-            <div id="despesas" class="bal-value">R$ 0,00</div>
-          </div>
-        </div>
+    <main class="tab-content" role="main">
+        <section id="dashboard-content" data-tab-content="dashboard" class="tab-pane">
+            <div class="grid">
+                <section class="card" aria-labelledby="dashboardTitle">
+                    <h2 id="dashboardTitle">Visão geral</h2>
+                    <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
 
-        <div class="chart-wrapper">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
-            <h3 class="compact">Resumo financeiro</h3>
-            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
-                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-            </svg>
-          </div>
-          <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
-        </div>
+                    <div class="balances" style="margin-top:12px">
+                        <div class="balance" aria-live="polite">
+                            <div class="bal-title">Saldo</div>
+                            <div id="saldo" class="bal-value">R$ 0,00</div>
+                        </div>
+                        <div class="balance">
+                            <div class="bal-title">Receitas (últimos 30 dias)</div>
+                            <div id="receitas" class="bal-value">R$ 0,00</div>
+                        </div>
+                        <div class="balance">
+                            <div class="bal-title">Despesas (últimos 30 dias)</div>
+                            <div id="despesas" class="bal-value">R$ 0,00</div>
+                        </div>
+                    </div>
 
-        <div class="transactions-wrapper">
-          <h3 class="compact">Últimas transações</h3>
-          <div style="overflow:auto; max-height:260px; margin-top:8px">
-            <table id="txTable" aria-live="polite">
-              <thead>
-                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+                    <div class="chart-wrapper">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
+                            <h3 class="compact">Resumo financeiro</h3>
+                            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
+                                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+                    </div>
 
-      <aside class="card" aria-labelledby="formTitle">
-        <h2 id="formTitle">Adicionar transação</h2>
-        <form id="txForm">
-          <label for="type">Tipo</label>
-          <select id="type" required aria-required="true">
-            <option value="credit">Receita</option>
-            <option value="debit">Despesa</option>
-          </select>
+                    <div class="transactions-wrapper">
+                        <h3 class="compact">Últimas transações</h3>
+                        <div style="overflow:auto; max-height:260px; margin-top:8px">
+                            <table id="txTable" aria-live="polite">
+                                <thead>
+                                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
 
-          <label for="date">Data</label>
-          <input type="date" id="date" required />
+                <aside class="card" aria-labelledby="formTitle">
+                    <h2 id="formTitle">Adicionar transação</h2>
+                    <form id="txForm">
+                        <label for="type">Tipo</label>
+                        <select id="type" required aria-required="true">
+                            <option value="credit">Receita</option>
+                            <option value="debit">Despesa</option>
+                        </select>
 
-          <label for="desc">Descrição</label>
-          <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
+                        <label for="date">Data</label>
+                        <input type="date" id="date" required />
 
-          <label for="category">Categoria</label>
-          <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
+                        <label for="desc">Descrição</label>
+                        <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
 
-          <label for="amount">Valor (R$)</label>
-          <input type="number" id="amount" step="0.01" placeholder="0.00" required />
+                        <label for="category">Categoria</label>
+                        <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
 
-          <div class="actions">
-            <button type="submit" aria-label="Salvar transação">Salvar</button>
-            <button type="button" id="clearBtn" class="secondary">Limpar</button>
-          </div>
-        </form>
+                        <label for="amount">Valor (R$)</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required />
 
-        <hr style="margin:14px 0" />
+                        <div class="actions">
+                            <button type="submit" aria-label="Salvar transação">Salvar</button>
+                            <button type="button" id="clearBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
 
-        <div>
-          <h3 class="compact">Importante</h3>
-          <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
-          <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
-        </div>
-      </aside>
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Importante</h3>
+                        <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
+                        <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="transactions-content" data-tab-content="transactions" class="tab-pane" style="display:none;">
+            <div class="card" style="padding: 40px; text-align: center;">
+                <h3>Transações Detalhadas</h3>
+                <p>Aqui você poderá ver, filtrar e editar todas as suas transações em uma lista completa. (Conteúdo a ser desenvolvido)</p>
+            </div>
+        </section>
     </main>
-
     <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
       <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
         <div style="display:flex; justify-content:space-between; align-items:center">
@@ -335,6 +381,37 @@
       helpModal.style.display = show ? 'flex' : 'none';
       helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
     }
+
+    // --- LÓGICA DAS ABAS (TABS) ---
+    const tabLinks = qs('.tab-link');
+    const tabPanes = qs('.tab-pane');
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.target.getAttribute('data-tab-id');
+            
+            // Remove 'active' de todos os links e oculta todos os conteúdos
+            tabLinks.forEach(l => {
+                l.classList.remove('active');
+                l.setAttribute('aria-selected', 'false');
+            });
+            tabPanes.forEach(p => {
+                p.style.display = 'none';
+            });
+
+            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
+            e.target.classList.add('active');
+            e.target.setAttribute('aria-selected', 'true');
+            $(`#${targetId}-content`).style.display = 'block';
+            
+            // Se o dashboard for re-selecionado, garanta que o gráfico renderize corretamente
+            if (targetId === 'dashboard' && chart) {
+                // A função render() que contém updateChart() será chamada no final, mas o resize ajuda
+                chart.resize(); 
+            }
+        });
+    });
+    // --- FIM DA LÓGICA DAS ABAS ---
 
     // --- Chart support ---
     let chart = null;

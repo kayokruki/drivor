@@ -34,6 +34,9 @@
     .bal-title{font-size:12px; color:var(--muted)}
     .bal-value{font-weight:700; font-size:20px}
 
+    /* O elemento chart-wrapper não precisa mais de altura fixa, 
+       deixando o Chart.js dimensionar o canvas corretamente */
+
     /* Form */
     label{display:block; font-size:13px; margin-bottom:8px}
     input[type="text"], input[type="number"], select, textarea, input[type="date"]{
@@ -337,7 +340,8 @@
           ]
         },
         options: {
-          responsive:true, maintainAspectRatio:false,
+          responsive:true, 
+          maintainAspectRatio:false, // ESSA OPÇÃO É CRÍTICA: deve ser false para ignorar a proporção e respeitar o 'height' do HTML
           plugins:{legend:{position:'bottom'}},
           // Ajusta as escalas para gráficos de pizza
           scales: currentType === 'pie' ? {} : {x:{display:true}, y:{display:true}}
@@ -402,7 +406,7 @@
       const s = summarize(list);
       $('#saldo').textContent = formatBRL(s.saldo);
       $('#receitas').textContent = formatBRL(s.receitas30 || 0);
-      $('#despesas').textContent = formatBRL(s.despesas30 || 0); // Correção: usava 'despesas' total, agora usa 'despesas30'
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
 
       updateChart(list); // Chama a função do gráfico
     }

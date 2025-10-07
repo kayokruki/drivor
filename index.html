@@ -1,420 +1,419 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Katalis — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas e relatório simples para pequenas empresas" />
-  <style>
-    :root{
-      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; --accent:#1d1d1d; --danger:#dc2626; --success:#16a34a;
-      --radius:12px; --gap:16px; --maxw:1100px;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color-scheme: light;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
-    .container{width:100%; max-width:var(--maxw)}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Drivor — Gerenciador Financeiro Simples</title>
+  <meta name="description" content="Drivor: controle de receitas, despesas e relatório simples para pequenas empresas" />
+  <style>
+    :root{
+      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
+      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
+      --danger:#dc2626; 
+      --success:#16a34a; /* VERDE de Receita/Sucesso */
+      --radius:12px; --gap:16px; --maxw:1100px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: light;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    .container{width:100%; max-width:var(--maxw)}
 
-    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
-    .logo{display:flex; align-items:center; gap:12px}
-    .brand{font-weight:700; font-size:20px}
-    .subtitle{color:var(--muted); font-size:13px}
+    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
+    .logo{display:flex; align-items:center; gap:12px}
+    .brand{font-weight:700; font-size:20px}
+    .subtitle{color:var(--muted); font-size:13px}
 
-    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
-    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
+    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
+    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
-    /* Dashboard */
-    .balances{display:flex; gap:12px; margin-bottom:16px}
-    /* AJUSTE: Centralização Vertical */
-    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
-        display: flex; flex-direction: column; justify-content: center; /* Centraliza o conteúdo */
-    }
-    .bal-title{font-size:12px; color:var(--muted)}
-    .bal-value{font-weight:700; font-size:20px}
-    
-    /* Correção de Altura do Gráfico: Solução Definitiva */
-    .chart-wrapper{
-      /* Altura ajustada para o gráfico de pizza ficar mais compacto e "acima" */
-      height: 240px; 
-      /* Margens e padding para estender a largura dentro do .card */
-      margin-left: -18px;
-      margin-right: -18px;
-      padding: 0 18px 18px 18px; /* Adiciona padding na parte inferior */
-      margin-bottom: 20px; /* Espaço entre o gráfico e as transações */
-      display: flex;
-      flex-direction: column;
-    }
-    #summaryChart{
-      height: 100% !important; 
-      width: 100% !important;
-    }
+    /* Dashboard */
+    .balances{display:flex; gap:12px; margin-bottom:16px}
+    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
+        display: flex; flex-direction: column; justify-content: center; 
+    }
+    .bal-title{font-size:12px; color:var(--muted)}
+    .bal-value{font-weight:700; font-size:20px}
+    
+    /* Correção de Altura do Gráfico: Solução Definitiva */
+    .chart-wrapper{
+      height: 240px; 
+      margin-left: -18px;
+      margin-right: -18px;
+      padding: 0 18px 18px 18px; 
+      margin-bottom: 20px; 
+      display: flex;
+      flex-direction: column;
+    }
+    #summaryChart{
+      height: 100% !important; 
+      width: 100% !important;
+    }
 
-    /* Transações Isoladas */
-    .transactions-wrapper{
-        margin-top: 16px; 
-    }
+    /* Transações Isoladas */
+    .transactions-wrapper{
+        margin-top: 16px; 
+    }
 
-    /* Form */
-    label{display:block; font-size:13px; margin-bottom:8px}
-    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
-    }
-    .row{display:flex; gap:12px}
-    .row .col{flex:1}
-    .actions{display:flex; gap:10px; margin-top:10px}
-    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
-    button.secondary{background:transparent; color:var(--accent); border:1px solid #cde7e2}
-    button.danger{background:var(--danger)}
+    /* Form */
+    label{display:block; font-size:13px; margin-bottom:8px}
+    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
+    }
+    .row{display:flex; gap:12px}
+    .row .col{flex:1}
+    .actions{display:flex; gap:10px; margin-top:10px}
+    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
+    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
+    button.danger{background:var(--danger)}
 
-    /* Transactions */
-    table{width:100%; border-collapse:collapse; font-size:14px}
-    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
-    th{font-weight:600; font-size:13px; color:var(--muted)}
-    .amount{font-weight:700}
-    .credit{color:var(--success)}
-    .debit{color:var(--danger)}
+    /* Transactions */
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
+    th{font-weight:600; font-size:13px; color:var(--muted)}
+    /* Receita em VERDE */
+    .amount{font-weight:700}
+    .credit{color:var(--success)} 
+    .debit{color:var(--danger)}
 
-    /* Small screens */
-    @media (max-width:900px){
-      .grid{grid-template-columns:1fr;}
-      .balances{flex-direction:column}
-      .chart-wrapper{
-          margin-left: 0;
-          margin-right: 0;
-          padding: 0 0 18px 0;
-      }
-    }
+    /* Small screens */
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+      .balances{flex-direction:column}
+      .chart-wrapper{
+          margin-left: 0;
+          margin-right: 0;
+          padding: 0 0 18px 0;
+      }
+    }
 
-    /* a11y focus */
-    :focus{outline:3px solid rgba(15,118,110,0.18); outline-offset:2px}
+    /* a11y focus */
+    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
 
-    /* Help text */
-    .help{font-size:13px; color:var(--muted)}
-    .compact{font-size:13px}
-  </style>
+    /* Help text */
+    .help{font-size:13px; color:var(--muted)}
+    .compact{font-size:13px}
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
-        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <rect width="24" height="24" rx="6" fill="#1d1d1d"></rect>
-          <path d="M6 14l3-3 2 2 6-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </svg>
-        <div>
-          <div class="brand">Katalis</div>
-          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
-        </div>
-      </div>
-      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
-        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
-        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
-      </div>
-    </header>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect width="24" height="24" rx="6" fill="#1d1d1d"></rect> 
+          <path d="M6 14l3-3 2 2 6-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div>
+          <div class="brand">Drivor</div>
+          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
+        </div>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
+        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
+        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
+      </div>
+    </header>
 
-    <main class="grid" role="main">
-      <section class="card" aria-labelledby="dashboardTitle">
-        <h2 id="dashboardTitle">Visão geral</h2>
-        <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
+    <main class="grid" role="main">
+      <section class="card" aria-labelledby="dashboardTitle">
+        <h2 id="dashboardTitle">Visão geral</h2>
+        <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
 
-        <div class="balances" style="margin-top:12px">
-          <div class="balance" aria-live="polite">
-            <div class="bal-title">Saldo</div>
-            <div id="saldo" class="bal-value">R$ 0,00</div>
-          </div>
-          <div class="balance">
-            <div class="bal-title">Receitas (últimos 30 dias)</div>
-            <div id="receitas" class="bal-value">R$ 0,00</div>
-          </div>
-          <div class="balance">
-            <div class="bal-title">Despesas (últimos 30 dias)</div>
-            <div id="despesas" class="bal-value">R$ 0,00</div>
-          </div>
-        </div>
+        <div class="balances" style="margin-top:12px">
+          <div class="balance" aria-live="polite">
+            <div class="bal-title">Saldo</div>
+            <div id="saldo" class="bal-value">R$ 0,00</div>
+          </div>
+          <div class="balance">
+            <div class="bal-title">Receitas (últimos 30 dias)</div>
+            <div id="receitas" class="bal-value">R$ 0,00</div>
+          </div>
+          <div class="balance">
+            <div class="bal-title">Despesas (últimos 30 dias)</div>
+            <div id="despesas" class="bal-value">R$ 0,00</div>
+          </div>
+        </div>
 
-        <div class="chart-wrapper">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
-            <h3 class="compact">Resumo financeiro</h3>
-            </div>
-          <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
-        </div>
+        <div class="chart-wrapper">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
+            <h3 class="compact">Resumo financeiro</h3>
+          </div>
+          <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+        </div>
 
-        <div class="transactions-wrapper">
-          <h3 class="compact">Últimas transações</h3>
-          <div style="overflow:auto; max-height:260px; margin-top:8px">
-            <table id="txTable" aria-live="polite">
-              <thead>
-                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        <div class="transactions-wrapper">
+          <h3 class="compact">Últimas transações</h3>
+          <div style="overflow:auto; max-height:260px; margin-top:8px">
+            <table id="txTable" aria-live="polite">
+              <thead>
+                <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
-      <aside class="card" aria-labelledby="formTitle">
-        <h2 id="formTitle">Adicionar transação</h2>
-        <form id="txForm">
-          <label for="type">Tipo</label>
-          <select id="type" required aria-required="true">
-            <option value="credit">Receita</option>
-            <option value="debit">Despesa</option>
-          </select>
+      <aside class="card" aria-labelledby="formTitle">
+        <h2 id="formTitle">Adicionar transação</h2>
+        <form id="txForm">
+          <label for="type">Tipo</label>
+          <select id="type" required aria-required="true">
+            <option value="credit">Receita</option>
+            <option value="debit">Despesa</option>
+          </select>
 
-          <label for="date">Data</label>
-          <input type="date" id="date" required />
+          <label for="date">Data</label>
+          <input type="date" id="date" required />
 
-          <label for="desc">Descrição</label>
-          <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
+          <label for="desc">Descrição</label>
+          <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
 
-          <label for="category">Categoria</label>
-          <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
+          <label for="category">Categoria</label>
+          <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
 
-          <label for="amount">Valor (R$)</label>
-          <input type="number" id="amount" step="0.01" placeholder="0.00" required />
+          <label for="amount">Valor (R$)</label>
+          <input type="number" id="amount" step="0.01" placeholder="0.00" required />
 
-          <div class="actions">
-            <button type="submit" aria-label="Salvar transação">Salvar</button>
-            <button type="button" id="clearBtn" class="secondary">Limpar</button>
-          </div>
-        </form>
+          <div class="actions">
+            <button type="submit" aria-label="Salvar transação">Salvar</button>
+            <button type="button" id="clearBtn" class="secondary">Limpar</button>
+          </div>
+        </form>
 
-        <hr style="margin:14px 0" />
+        <hr style="margin:14px 0" />
 
-        <div>
-          <h3 class="compact">Importante</h3>
-          <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
-          <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
-        </div>
-      </aside>
-    </main>
+        <div>
+          <h3 class="compact">Importante</h3>
+          <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
+          <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
+        </div>
+      </aside>
+    </main>
 
-    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
-      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-          <h3>Ajuda — Como usar</h3>
-          <button id="closeHelp" class="secondary">Fechar</button>
-        </div>
-        <div style="margin-top:8px">
-          <ol>
-            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
-            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
-            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
-            <li>Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
+    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
+      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3>Ajuda — Como usar</h3>
+          <button id="closeHelp" class="secondary">Fechar</button>
+        </div>
+        <div style="margin-top:8px">
+          <ol>
+            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
+            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
+            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
 
-  </div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
-  <script>
-    moment.locale('pt-br'); 
-    
-    // --- Utilitários ---
-    const $ = selector => document.querySelector(selector);
-    const qs = selector => document.querySelectorAll(selector);
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+  <script>
+    moment.locale('pt-br'); 
+    
+    // --- Utilitários ---
+    const $ = selector => document.querySelector(selector);
+    const qs = selector => document.querySelectorAll(selector);
 
-    // Form elements
-    const txForm = $('#txForm');
-    const typeEl = $('#type');
-    const dateEl = $('#date');
-    const descEl = $('#desc');
-    const catEl = $('#category');
-    const amountEl = $('#amount');
-    const txTableBody = $('#txTable tbody');
+    // Form elements
+    const txForm = $('#txForm');
+    const typeEl = $('#type');
+    const dateEl = $('#date');
+    const descEl = $('#desc');
+    const catEl = $('#category');
+    const amountEl = $('#amount');
+    const txTableBody = $('#txTable tbody');
 
-    const SALTO_KEY = 'katalis_tx_v1'; // Alterado de 'drivor_tx_v1'
+    const SALTO_KEY = 'drivor_tx_v1';
 
-    function loadTx(){
-      try{
-        const raw = localStorage.getItem(SALTO_KEY);
-        return raw ? JSON.parse(raw) : [];
-      }catch(e){
-        console.error('Erro ao carregar dados', e);
-        return [];
-      }
-    }
-    function saveTx(list){
-      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
-    }
+    function loadTx(){
+      try{
+        const raw = localStorage.getItem(SALTO_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        console.error('Erro ao carregar dados', e);
+        return [];
+      }
+    }
+    function saveTx(list){
+      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
+    }
 
-    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
+    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
 
-    txForm.addEventListener('submit', (ev)=>{
-      ev.preventDefault();
-      const tx = {
-        id: Date.now(),
-        type: typeEl.value,
-        date: dateEl.value || new Date().toISOString().slice(0,10),
-        desc: descEl.value.trim() || '(sem descrição)',
-        category: catEl.value.trim() || 'Outros',
-        amount: Number(amountEl.value) || 0
-      };
-      const list = loadTx();
-      list.push(tx);
-      saveTx(list);
-      txForm.reset();
-      render();
-      typeEl.focus();
-    });
+    txForm.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+      const tx = {
+        id: Date.now(),
+        type: typeEl.value,
+        date: dateEl.value || new Date().toISOString().slice(0,10),
+        desc: descEl.value.trim() || '(sem descrição)',
+        category: catEl.value.trim() || 'Outros',
+        amount: Number(amountEl.value) || 0
+      };
+      const list = loadTx();
+      list.push(tx);
+      saveTx(list);
+      txForm.reset();
+      render();
+      typeEl.focus();
+    });
 
-    function removeTx(id){
-      const list = loadTx().filter(t => t.id !== id);
-      saveTx(list);
-      render();
-    }
+    function removeTx(id){
+      const list = loadTx().filter(t => t.id !== id);
+      saveTx(list);
+      render();
+    }
 
-    function formatBRL(v){
-      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-    }
+    function formatBRL(v){
+      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    }
 
-    function summarize(list){
-      let saldo = 0, receitas = 0, despesas = 0;
-      const last30 = new Date(); last30.setDate(last30.getDate()-30);
-      let receitas30 = 0, despesas30 = 0;
-      list.forEach(t => {
-        if(t.type === 'credit'){
-          saldo += t.amount; receitas += t.amount;
-          if(new Date(t.date) >= last30) receitas30 += t.amount;
-        }else{
-          saldo -= t.amount; despesas += t.amount;
-          if(new Date(t.date) >= last30) despesas30 += t.amount;
-        }
-      });
-      return {saldo, receitas, despesas, receitas30, despesas30};
-    }
+    function summarize(list){
+      let saldo = 0, receitas = 0, despesas = 0;
+      const last30 = new Date(); last30.setDate(last30.getDate()-30);
+      let receitas30 = 0, despesas30 = 0;
+      list.forEach(t => {
+        if(t.type === 'credit'){
+          saldo += t.amount; receitas += t.amount;
+          if(new Date(t.date) >= last30) receitas30 += t.amount;
+        }else{
+          saldo -= t.amount; despesas += t.amount;
+          if(new Date(t.date) >= last30) despesas30 += t.amount;
+        }
+      });
+      return {saldo, receitas, despesas, receitas30, despesas30};
+    }
 
-    function escapeHtml(str){
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
-    $('#exportBtn').addEventListener('click', ()=>{
-      const list = loadTx();
-      if(!list.length){ alert('Não há dados para exportar.'); return; }
-      const header = ['id','date','type','description','category','amount'];
-      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
-      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; // Alterado o nome do arquivo
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
+    $('#exportBtn').addEventListener('click', ()=>{
+      const list = loadTx();
+      if(!list.length){ alert('Não há dados para exportar.'); return; }
+      const header = ['id','date','type','description','category','amount'];
+      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
+      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `drivor-export-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
 
-    const helpModal = $('#helpModal');
-    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
-    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
-    function showHelp(show){
-      helpModal.style.display = show ? 'flex' : 'none';
-      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
-    }
+    const helpModal = $('#helpModal');
+    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
+    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
+    function showHelp(show){
+      helpModal.style.display = show ? 'flex' : 'none';
+      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
 
-    // --- Chart support ---
-    let chart = null;
+    // --- Chart support ---
+    let chart = null;
 
-    // Função de atualização simplificada para focar APENAS no gráfico de pizza
-    function updateChart(list){
-      const days = 30;
-      let totalCredits = 0;
-      let totalDebits = 0;
+    // Função de atualização simplificada para focar APENAS no gráfico de pizza
+    function updateChart(list){
+      const days = 30;
+      let totalCredits = 0;
+      let totalDebits = 0;
 
-      const date30Days = new Date();
-      date30Days.setDate(date30Days.getDate() - days);
+      const date30Days = new Date();
+      date30Days.setDate(date30Days.getDate() - days);
 
-      list.forEach(t => {
-        // Apenas transações dos últimos 30 dias contam para a pizza
-        if (new Date(t.date) >= date30Days) {
-            if(t.type === 'credit') totalCredits += t.amount;
-            else totalDebits += t.amount;
-        }
-      });
+      list.forEach(t => {
+        // Apenas transações dos últimos 30 dias contam para a pizza
+        if (new Date(t.date) >= date30Days) {
+            if(t.type === 'credit') totalCredits += t.amount;
+            else totalDebits += t.amount;
+        }
+      });
 
-      const ctx = document.getElementById('summaryChart').getContext('2d');
-      if(chart) chart.destroy(); // Destruir o gráfico anterior antes de criar um novo
+      const ctx = document.getElementById('summaryChart').getContext('2d');
+      if(chart) chart.destroy(); // Destruir o gráfico anterior antes de criar um novo
 
-      let chartConfig = {
-        type: 'pie', // FIXADO NO TIPO PIZZA
-        data: {
-            labels: ['Receitas', 'Despesas'],
-            datasets: [{
-                data: [totalCredits, totalDebits],
-                backgroundColor: ['rgba(16,118,110,0.8)', 'rgba(220,38,38,0.8)'],
-                borderColor: ['rgba(16,118,110,1)', 'rgba(220,38,38,1)']
-            }]
-        },
-        options: {
-          responsive:true, 
-          maintainAspectRatio:false, 
-          plugins:{
-            legend:{position:'bottom'},
-            tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    let label = context.label || '';
-                    if (label) {
-                      label += ': ';
-                    }
-                    if (context.parsed !== null) {
-                      label += formatBRL(context.parsed);
-                    }
-                    return label;
-                  }
-                }
-            }
-          },
-          // Gráfico de pizza não precisa de escalas
-          scales: {}
-        }
-      };
+      let chartConfig = {
+        type: 'pie', // FIXADO NO TIPO PIZZA
+        data: {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{
+                data: [totalCredits, totalDebits],
+                // COR DE RECEITAS RESTAURADA para o verde (var(--success) = #16a34a)
+                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
+                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
+            }]
+        },
+        options: {
+          responsive:true, 
+          maintainAspectRatio:false, 
+          plugins:{
+            legend:{position:'bottom'},
+            tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                      label += formatBRL(context.parsed);
+                    }
+                    return label;
+                  }
+                }
+            }
+          },
+          // Gráfico de pizza não precisa de escalas
+          scales: {}
+        }
+      };
 
-      chart = new Chart(ctx, chartConfig);
-    }
+      chart = new Chart(ctx, chartConfig);
+    }
 
-    // Event listener do botão de alternância REMOVIDO
+    function render(){
+      const list = loadTx().sort((a,b)=> b.id - a.id);
+      txTableBody.innerHTML = '';
+      for(const t of list){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${t.date}</td>
+          <td>${escapeHtml(t.desc)}</td>
+          <td>${escapeHtml(t.category)}</td>
+          <td class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
+          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
+        `;
+        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
+        txTableBody.appendChild(tr);
+      }
 
-    function render(){
-      const list = loadTx().sort((a,b)=> b.id - a.id);
-      txTableBody.innerHTML = '';
-      for(const t of list){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${t.date}</td>
-          <td>${escapeHtml(t.desc)}</td>
-            <td>${escapeHtml(t.category)}</td>
-          <td class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
-          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
-        `;
-        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
-        txTableBody.appendChild(tr);
-      }
+      const s = summarize(list);
+      $('#saldo').textContent = formatBRL(s.saldo);
+      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
 
-      const s = summarize(list);
-      $('#saldo').textContent = formatBRL(s.saldo);
-      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
-      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
+      updateChart(list); // Chama a função do gráfico
+    }
 
-      updateChart(list); // Chama a função do gráfico
-    }
+    // Inicializa o app
+    render();
 
-    // Inicializa o app
-    render();
-
-    // Seta a data de hoje no campo de data por padrão
-    dateEl.value = new Date().toISOString().slice(0,10);
-  </script>
+    // Seta a data de hoje no campo de data por padrão
+    dateEl.value = new Date().toISOString().slice(0,10);
+  </script>
 </body>
 </html>

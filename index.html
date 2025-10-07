@@ -8,8 +8,9 @@
   <style>
     :root{
       --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
-      --accent:#1d1d1d; /* COR PRINCIPAL ALTERADA */
-      --danger:#dc2626; --success:#16a34a;
+      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
+      --danger:#dc2626; 
+      --success:#16a34a; /* VERDE de Receita/Sucesso */
       --radius:12px; --gap:16px; --maxw:1100px;
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
       color-scheme: light;
@@ -66,17 +67,16 @@
     .row{display:flex; gap:12px}
     .row .col{flex:1}
     .actions{display:flex; gap:10px; margin-top:10px}
-    /* BOTÕES USANDO a nova cor ACCENT */
     button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
-    button.secondary{background:transparent; color:var(--accent); border:1px solid #cde7e2} /* Borda secundária não precisa mudar */
+    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
     button.danger{background:var(--danger)}
 
     /* Transactions */
     table{width:100%; border-collapse:collapse; font-size:14px}
     th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
     th{font-weight:600; font-size:13px; color:var(--muted)}
+    /* Receita em VERDE */
     .amount{font-weight:700}
-    /* A COR DE RECEITA DEVE SER MANTIDA VERDE PARA SEMÁNTICA FINANCEIRA */
     .credit{color:var(--success)} 
     .debit{color:var(--danger)}
 
@@ -92,7 +92,7 @@
     }
 
     /* a11y focus */
-    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px} /* Ajustado para nova cor */
+    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
 
     /* Help text */
     .help{font-size:13px; color:var(--muted)}
@@ -352,9 +352,9 @@
             labels: ['Receitas', 'Despesas'],
             datasets: [{
                 data: [totalCredits, totalDebits],
-                // COR DE RECEITAS ALTERADA para a nova cor principal #1d1d1d
-                backgroundColor: ['rgba(29, 29, 29, 0.9)', 'rgba(220,38,38,0.8)'], 
-                borderColor: ['#1d1d1d', 'rgba(220,38,38,1)']
+                // COR DE RECEITAS RESTAURADA para o verde (var(--success) = #16a34a)
+                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
+                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
             }]
         },
         options: {

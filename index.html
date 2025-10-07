@@ -12,6 +12,7 @@
   <link rel="icon" href="images/favicons/katalis-favicon.ico" type="image/x-icon">
   <link rel="apple-touch-icon" href="images/favicons/katalis-apple-touch-icon.png">
   <link rel="manifest" href="images/favicons/site.webmanifest">
+  
   <style>
     :root{
       --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
@@ -148,6 +149,10 @@
         <div class="chart-wrapper">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
             <h3 class="compact">Resumo financeiro</h3>
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
+                <path d="M6 14l3-3 2 2 6-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
           </div>
           <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
         </div>
@@ -240,7 +245,6 @@
     const txTableBody = $('#txTable tbody');
 
     // ATENÇÃO: A chave de localStorage MANTÉM O NOME ANTIGO (drivor_tx_v1)
-    // para não perder os dados salvos do usuário. 
     const SALTO_KEY = 'drivor_tx_v1';
 
     function loadTx(){

@@ -120,6 +120,7 @@
     .credit{color:var(--success)} 
     .debit{color:var(--danger)}
     .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
+    .stock-total-value{font-weight: 700; color: var(--accent);} /* Novo estilo para valor total do estoque */
 
     /* Small screens */
     @media (max-width:900px){
@@ -259,12 +260,23 @@
             <div class="grid">
                 <section class="card" aria-labelledby="stockListTitle">
                     <h2 id="stockListTitle">Itens em Estoque</h2>
+                    
+                    <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
+                    
                     <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
                     
                     <div style="overflow:auto; margin-top:16px">
                         <table id="stockTable" aria-live="polite">
                             <thead>
-                                <tr><th>Código</th><th>Produto</th><th>Categoria</th><th>Qtde</th><th></th></tr>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Qtde</th>
+                                    <th>Vlr Unitário</th>
+                                    <th>Vlr Total</th>
+                                    <th></th>
+                                </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -282,6 +294,9 @@
 
                         <label for="stockCategory">Categoria</label>
                         <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
+
+                        <label for="stockPrice">Valor Unitário (R$)</label>
+                        <input type="number" id="stockPrice" step="0.01" min="0" placeholder="0.00" required />
 
                         <label for="stockQuantity">Quantidade</label>
                         <input type="number" id="stockQuantity" min="0" placeholder="0" required />
@@ -346,12 +361,14 @@
     const stockCodeEl = $('#stockCode');
     const stockNameEl = $('#stockName');
     const stockCategoryEl = $('#stockCategory');
+    const stockPriceEl = $('#stockPrice'); // Novo elemento de preço
     const stockQuantityEl = $('#stockQuantity');
     const stockTableBody = $('#stockTable tbody');
-    const STOCK_KEY = 'katalis_stock_v1'; // Nova chave para o estoque
+    const stockFilterEl = $('#stockFilter'); // Novo elemento de filtro
+    const STOCK_KEY = 'katalis_stock_v1'; 
 
     // ------------------------------------
-    // LÓGICA DE ESTOQUE (CRUD)
+    // LÓGICA DE ESTOQUE (CRUD + FILTRO)
     // ------------------------------------
 
     function loadStock(){
@@ -372,6 +389,7 @@
         const itemCode = stockCodeEl.value.trim().toUpperCase();
         const itemName = stockNameEl.value.trim();
         const itemCat = stockCategoryEl.value.trim() || 'Geral';
+        const itemPrice = Number(stockPriceEl.value) || 0; // Novo
         const itemQty = Number(stockQuantityEl.value) || 0;
         
         const list = loadStock();
@@ -381,6 +399,7 @@
             code: itemCode,
             name: itemName,
             category: itemCat,
+            price: itemPrice, // Novo
             quantity: itemQty
         };
 
@@ -406,13 +425,28 @@
         renderStock();
     }
 
+    // Função de filtragem em tempo real
+    stockFilterEl.addEventListener('input', renderStock);
+
     function renderStock(){
-        const list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+        const filterText = stockFilterEl.value.toLowerCase();
+        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+
+        // Aplica o filtro
+        if (filterText) {
+            list = list.filter(item => 
+                item.code.toLowerCase().includes(filterText) ||
+                item.name.toLowerCase().includes(filterText) ||
+                item.category.toLowerCase().includes(filterText)
+            );
+        }
+
         stockTableBody.innerHTML = '';
 
         for(const item of list){
             const isLowStock = item.quantity < 5;
             const quantityClass = isLowStock ? 'low-stock' : '';
+            const totalValue = item.price * item.quantity; // Cálculo do valor total
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -420,6 +454,8 @@
                 <td>${escapeHtml(item.name)}</td>
                 <td>${escapeHtml(item.category)}</td>
                 <td class="${quantityClass}">${item.quantity}</td>
+                <td>${formatBRL(item.price)}</td>
+                <td class="stock-total-value">${formatBRL(totalValue)}</td>
                 <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
             `;
             tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
@@ -638,7 +674,6 @@
 
     // Inicializa o app
     render();
-    // Garante que o estoque também seja carregado (embora não esteja visível)
     renderStock();
 
     // Seta a data de hoje no campo de data por padrão

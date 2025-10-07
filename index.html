@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Drivor — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Drivor: controle de receitas, despesas e relatório simples para pequenas empresas" />
+  <title>Katalis — Gerenciador Financeiro Simples</title>
+  <meta name="description" content="Katalis: controle de receitas, despesas e relatório simples para pequenas empresas" />
   <style>
     :root{
       --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
@@ -108,7 +108,7 @@
           <path d="M6 14l3-3 2 2 6-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         </svg>
         <div>
-          <div class="brand">Drivor</div>
+          <div class="brand">Katalis</div> 
           <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
         </div>
       </div>
@@ -232,6 +232,8 @@
     const amountEl = $('#amount');
     const txTableBody = $('#txTable tbody');
 
+    // ATENÇÃO: A chave de localStorage MANTÉM O NOME ANTIGO (drivor_tx_v1)
+    // para não perder os dados salvos do usuário. 
     const SALTO_KEY = 'drivor_tx_v1';
 
     function loadTx(){
@@ -311,7 +313,7 @@
       const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `drivor-export-${new Date().toISOString().slice(0,10)}.csv`;
+      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; // NOME DO ARQUIVO ATUALIZADO
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
@@ -344,15 +346,15 @@
       });
 
       const ctx = document.getElementById('summaryChart').getContext('2d');
-      if(chart) chart.destroy(); // Destruir o gráfico anterior antes de criar um novo
+      if(chart) chart.destroy(); 
 
       let chartConfig = {
-        type: 'pie', // FIXADO NO TIPO PIZZA
+        type: 'pie', 
         data: {
             labels: ['Receitas', 'Despesas'],
             datasets: [{
                 data: [totalCredits, totalDebits],
-                // COR DE RECEITAS RESTAURADA para o verde (var(--success) = #16a34a)
+                // Receitas em VERDE, Despesas em VERMELHO
                 backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
                 borderColor: ['#16a34a', 'rgba(220,38,38,1)']
             }]
@@ -377,7 +379,6 @@
                 }
             }
           },
-          // Gráfico de pizza não precisa de escalas
           scales: {}
         }
       };
@@ -406,7 +407,7 @@
       $('#receitas').textContent = formatBRL(s.receitas30 || 0);
       $('#despesas').textContent = formatBRL(s.despesas30 || 0);
 
-      updateChart(list); // Chama a função do gráfico
+      updateChart(list); 
     }
 
     // Inicializa o app

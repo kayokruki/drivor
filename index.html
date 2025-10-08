@@ -1,1051 +1,982 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Katalis — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas, gestão de estoque e tarefas para pequenas empresas" />
-  
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Katalis — Gerenciador Financeiro e RH</title>
+  <meta name="description" content="Katalis: controle de receitas, despesas, gestão de estoque e RH para pequenas empresas" />
+  
+  <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-48x48.png" sizes="48x48" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="images/favicons/katalis-apple-touch-icon.png">
+  <link rel="manifest" href="images/favicons/site.webmanifest">
+  
+  <style>
+    :root{
+      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
+      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
+      --danger:#dc2626; 
+      --success:#16a34a; /* VERDE de Receita/Sucesso */
+      --radius:12px; --gap:16px; --maxw:1100px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: light;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
+      -webkit-font-smoothing:antialiased; -moz-osx-smoothing:grayscale;
+    }
+    .container{width:100%; max-width:var(--maxw)}
 
-  <link rel="shortcut icon" href="main/imagens/katalis.png" type="image/png">
-  
-  <style>
-    :root{
-      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
-      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
-      --danger:#dc2626; 
-      --success:#16a34a; /* VERDE de Receita/Sucesso */
-      --tasks: #2563eb; /* AZUL para Tarefas */
-      --radius:12px; --gap:16px; --maxw:1100px;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color-scheme: light;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
-      -webkit-font-smoothing:antialiased; -moz-osx-smoothing:grayscale;
-    }
-    .container{width:100%; max-width:var(--maxw)}
+    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
+    .logo{display:flex; align-items:center; gap:12px}
+    .brand{font-weight:700; font-size:20px}
+    .subtitle{color:var(--muted); font-size:13px}
 
-    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
-    .logo{display:flex; align-items:center; gap:12px}
-    .brand{font-weight:700; font-size:20px}
-    .subtitle{color:var(--muted); font-size:13px}
-
-    /* ESTILOS DAS ABAS (TABS) - MANTIDOS */
-    .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
-    .tabs-nav{display:flex; gap:20px;}
-    .tab-link{
-      padding: 10px 0;
-      color: var(--muted);
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: color 0.2s;
-    }
-    .tab-link:hover{
-        color: var(--accent);
-    }
-    .tab-link.active[data-tab-id="dashboard"]{
-        color: var(--accent);
-        border-bottom-color: var(--success); /* Dashboard - Verde */
-        font-weight: 700;
-    }
-    .tab-link.active[data-tab-id="stock"]{
-        color: var(--accent);
-        border-bottom-color: var(--danger); /* Estoque - Vermelho */
-        font-weight: 700;
-    }
-    .tab-link.active[data-tab-id="tasks"]{
-        color: var(--accent);
-        border-bottom-color: var(--tasks); /* Tarefas - Azul */
-        font-weight: 700;
-    }
-    .tab-content{
-        padding-top: 10px; /* Espaço entre as abas e o conteúdo */
-    }
-
-    /* Conteúdo do Dashboard e Estoque */
-    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
-    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
-
-    /* Dashboard */
-    .balances{display:flex; gap:12px; margin-bottom:16px}
-    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
-        display: flex; flex-direction: column; justify-content: center; 
-    }
-    .bal-title{font-size:12px; color:var(--muted)}
-    .bal-value{font-weight:700; font-size:20px}
-    
-    /* Correção de Altura do Gráfico: Solução Definitiva */
-    .chart-wrapper{
-      height: 240px; 
-      margin-left: -18px;
-      margin-right: -18px;
-      padding: 0 18px 18px 18px; 
-      margin-bottom: 20px; 
-      display: flex;
-      flex-direction: column;
-    }
-    #summaryChart{
-      height: 100% !important; 
-      width: 100% !important;
-    }
-
-    /* Transações Isoladas */
-    .transactions-wrapper{
-        margin-top: 16px; 
-    }
-    /* NOVO: Estilo para Alerta Proativo */
-    .risk-alert-card {
+    /* ESTILOS DAS ABAS (TABS) */
+    .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
+    .tabs-nav{display:flex; gap:20px;}
+    .tab-link{
+      padding: 10px 0;
+      color: var(--muted);
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s;
+      position: relative; /* Para a bolinha de notificação */
+    }
+    .tab-link:hover{
+        color: var(--accent);
+    }
+    .tab-link.active{
+        color: var(--accent);
+        border-bottom-color: var(--success); 
+        font-weight: 700;
+    }
+    .tab-content{
+        padding-top: 10px; 
+    }
+    /* Notificação da aba RH */
+    .notification-badge {
+        position: absolute;
+        top: 0px;
+        right: -10px;
         background-color: var(--danger);
         color: white;
-        margin-bottom: 8px;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 14px;
-        line-height: 1.4;
-    }
-    .risk-alert-card strong {
-        display: block;
-        margin-bottom: 4px;
-    }
-    /* Form */
-    label{display:block; font-size:13px; margin-bottom:8px}
-    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
-    }
-    .row{display:flex; gap:12px}
-    .row .col{flex:1}
-    .actions{display:flex; gap:10px; margin-top:10px}
-    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
-    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
-    button.danger{background:var(--danger)}
-    
-    /* Botão de Estoque (para visualmente ser diferente) */
-    .stock-action-btn{
-        background-color: var(--success);
-    }
-    .stock-action-btn:hover{
-        background-color: #118d3e; /* tom mais escuro do verde */
-    }
-    /* Botão de Tarefas (para visualmente ser diferente) */
-    .task-action-btn{
-        background-color: var(--tasks);
-    }
-    .task-action-btn:hover{
-        background-color: #1e53c4;
-    }
-
-
-    /* Transactions & Stock Table */
-    table{width:100%; border-collapse:collapse; font-size:14px}
-    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
-    th{font-weight:600; font-size:13px; color:var(--muted)}
-    /* Receita em VERDE */
-    .amount{font-weight:700}
-    .credit{color:var(--success)} 
-    .debit{color:var(--danger)}
-    .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
-    .stock-total-value{font-weight: 700; color: var(--accent);} /* Novo estilo para valor total do estoque */
-
-    /* NOVO: Estilos da Lista de Tarefas */
-    .task-list {
-        list-style: none;
-        padding: 0;
-        max-height: 480px;
-        overflow-y: auto;
-    }
-    .task-item {
-        display: flex;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: none; /* Inicia oculto */
         align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #eef2f6;
+        justify-content: center;
+        z-index: 10;
+        border: 2px solid var(--card); /* Para destacar */
     }
-    .task-item:last-child {
-        border-bottom: none;
-    }
-    .task-text {
-        flex-grow: 1;
-        margin-left: 10px;
-        font-size: 15px;
-        font-weight: 500;
-        color: var(--accent);
-        cursor: pointer;
-    }
-    .task-text.completed {
-        text-decoration: line-through;
-        color: var(--muted);
-        font-weight: 400;
-    }
-    .task-remove-btn {
-        background: transparent;
-        color: var(--danger);
-        border: none;
-        padding: 4px;
-        margin-left: 8px;
-        cursor: pointer;
-        font-size: 18px;
-        line-height: 1;
-    }
-    .task-checkbox {
-        width: 18px;
-        height: 18px;
-        accent-color: var(--tasks);
-        cursor: pointer;
+    .notification-badge.active {
+        display: flex;
     }
 
-    /* Small screens */
-    @media (max-width:900px){
-      /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
-      .grid{grid-template-columns:1fr;}
-      .balances{
-          flex-direction:column; /* Saldos um abaixo do outro */
-          gap: 8px; /* Diminui o espaço entre os saldos */
-      }
-      .balance{
-          padding: 12px; /* Diminui o padding do saldo */
-      }
-      .chart-wrapper{
-          margin-left: 0;
-          margin-right: 0;
-          padding: 0 0 18px 0;
-      }
-      
-      /* ESTILOS DE TABELA RESPONSIVA: GERAL (APLICADO A #stockTable E #txTable) */
-      table:not(.responsive-table-ignore) {
-          border: 0; /* Remove bordas da tabela principal */
-          font-size: 15px;
-      }
-      table:not(.responsive-table-ignore) thead{
-          /* Oculta os cabeçalhos originais em mobile */
-          border: none;
-          clip: rect(0 0 0 0);
-          height: 1px;
-          margin: -1px;
-          overflow: hidden;
-          padding: 0;
-          position: absolute;
-          width: 1px;
-      }
-      table:not(.responsive-table-ignore) tr{
-          display: block; /* Cada linha vira um bloco (o cartão) */
-          margin-bottom: 12px;
-          border: 1px solid #eef2f6;
-          border-radius: var(--radius);
-          padding: 8px 12px;
-          box-shadow: 0 1px 4px rgba(2,6,23,0.04);
-      }
-      table:not(.responsive-table-ignore) tr:last-child {
-          margin-bottom: 0; 
-      }
-      table:not(.responsive-table-ignore) td{
-          display: block; /* Cada célula de dado vira uma linha separada */
-          border-bottom: 1px solid #eef2f6;
-          text-align: right;
-          padding: 6px 0;
-          
-      }
-      table:not(.responsive-table-ignore) td:last-child{
-          border-bottom: 0; 
-          text-align: left;
-          padding-top: 10px;
-      }
-      
-      /* Adiciona o rótulo da coluna (data-label) antes do dado */
-      table:not(.responsive-table-ignore) td::before{
-          content: attr(data-label);
-          float: left;
-          font-weight: bold;
-          color: var(--muted);
-          margin-right: 8px;
-      }
-      table:not(.responsive-table-ignore) td:last-child button {
-          width: 100%; /* Botão "Remover" fica em largura total */
-          background-color: var(--danger); 
-      }
-      
-      /* Remove o overflow:auto para as divs que continham as tabelas */
-      .transactions-wrapper > div[style*="overflow:auto"],
-      #stock-content div[style*="overflow:auto"]{
-          overflow: visible !important;
-          padding: 0 !important;
-          max-height: none !important; 
-      }
-      
-      /* Estilo Específico para o botão "Remover" da Transação */
-      #txTable td:last-child button {
-          background-color: var(--accent); 
-      }
-    }
+    /* Conteúdo do Dashboard, Estoque e RH */
+    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
+    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
-    /* a11y focus */
-    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
+    /* Dashboard */
+    .balances{display:flex; gap:12px; margin-bottom:16px}
+    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
+        display: flex; flex-direction: column; justify-content: center; 
+    }
+    .bal-title{font-size:12px; color:var(--muted)}
+    .bal-value{font-weight:700; font-size:20px}
+    
+    /* Correção de Altura do Gráfico: Solução Definitiva */
+    .chart-wrapper{
+      height: 240px; 
+      margin-left: -18px;
+      margin-right: -18px;
+      padding: 0 18px 18px 18px; 
+      margin-bottom: 20px; 
+      display: flex;
+      flex-direction: column;
+    }
+    #summaryChart{
+      height: 100% !important; 
+      width: 100% !important;
+    }
 
-    /* Help text */
-    .help{font-size:13px; color:var(--muted)}
-    .compact{font-size:13px}
-  </style>
+    /* Transações Isoladas */
+    .transactions-wrapper{
+        margin-top: 16px; 
+    }
+
+    /* Form */
+    label{display:block; font-size:13px; margin-bottom:8px}
+    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
+    }
+    .row{display:flex; gap:12px}
+    .row .col{flex:1}
+    .actions{display:flex; gap:10px; margin-top:10px}
+    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
+    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
+    button.danger{background:var(--danger)}
+    
+    /* Botões Específicos */
+    .stock-action-btn{ background-color: var(--success); }
+    .stock-action-btn:hover{ background-color: #118d3e; } 
+
+    .rh-action-btn{ background-color: #2563eb; } /* Um azul para RH */
+    .rh-action-btn:hover{ background-color: #1e40af; }
+    
+    .payment-fulfilled-btn{ background-color: var(--success); padding: 6px 10px; font-size: 13px; }
+
+    /* Transactions & Stock Table */
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
+    th{font-weight:600; font-size:13px; color:var(--muted)}
+    
+    .amount{font-weight:700}
+    .credit{color:var(--success)} 
+    .debit{color:var(--danger)}
+    .low-stock{color:var(--danger); font-weight: 600;} 
+    .stock-total-value{font-weight: 700; color: var(--accent);} 
+    
+    /* Small screens */
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+      .balances{ flex-direction:column; gap: 8px; }
+      .balance{ padding: 12px; }
+      .chart-wrapper{ margin-left: 0; margin-right: 0; padding: 0 0 18px 0; }
+      table:not(.responsive-table-ignore) { border: 0; font-size: 15px; }
+      table:not(.responsive-table-ignore) thead{ border: none; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+      table:not(.responsive-table-ignore) tr{ display: block; margin-bottom: 12px; border: 1px solid #eef2f6; border-radius: var(--radius); padding: 8px 12px; box-shadow: 0 1px 4px rgba(2,6,23,0.04); }
+      table:not(.responsive-table-ignore) td{ display: block; border-bottom: 1px solid #eef2f6; text-align: right; padding: 6px 0; }
+      table:not(.responsive-table-ignore) tr:last-child { margin-bottom: 0; }
+      table:not(.responsive-table-ignore) td:last-child{ border-bottom: 0; text-align: left; padding-top: 10px; }
+      table:not(.responsive-table-ignore) td::before{ content: attr(data-label); float: left; font-weight: bold; color: var(--muted); margin-right: 8px; }
+      table:not(.responsive-table-ignore) td:last-child button { width: 100%; background-color: var(--danger); }
+      .transactions-wrapper > div[style*="overflow:auto"], #stock-content div[style*="overflow:auto"], #rh-content div[style*="overflow:auto"]{ overflow: visible !important; padding: 0 !important; max-height: none !important; }
+      #txTable td:last-child button { background-color: var(--accent); }
+    }
+
+    /* a11y focus */
+    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
+
+    /* Help text */
+    .help{font-size:13px; color:var(--muted)}
+    .compact{font-size:13px}
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true" focusable="false">
-            <rect width="44" height="44" rx="8" fill="#1d1d1d"/> 
-            <rect x="12" y="10" width="4" height="24" rx="2" fill="#fff" />
-            <path d="M19 14 L30 25 L19 36" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </svg>
-        <div>
-          <div class="brand">Katalis</div> 
-          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
-        </div>
-      </div>
-      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
-        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
-        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
-      </div>
-    </header>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true" focusable="false">
+            <rect width="44" height="44" rx="8" fill="#1d1d1d"/> 
+            <rect x="12" y="10" width="4" height="24" rx="2" fill="#fff" />
+            <path d="M19 14 L30 25 L19 36" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div>
+          <div class="brand">Katalis</div> 
+          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
+        </div>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
+        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
+        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
+      </div>
+    </header>
 
-    <nav class="tabs" role="tablist">
-        <div class="tabs-nav">
-            <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
-                Dashboard
-            </a>
-            <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
-                Estoque
-            </a>
-             <a class="tab-link" id="tab-tasks" data-tab-id="tasks" role="tab" aria-controls="tasks-content" aria-selected="false">
-                Tarefas
-            </a>
-        </div>
-    </nav>
+    <nav class="tabs" role="tablist">
+        <div class="tabs-nav">
+            <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
+                Dashboard
+            </a>
+            <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
+                Estoque
+            </a>
+            <a class="tab-link" id="tab-rh" data-tab-id="rh" role="tab" aria-controls="rh-content" aria-selected="false">
+                RH 
+                <span id="rh-notification-badge" class="notification-badge" aria-label="Aviso de pagamento pendente">1</span>
+            </a>
+        </div>
+    </nav>
 
-    <main class="tab-content" role="main">
-        <section id="dashboard-content" data-tab-content="dashboard" class="tab-pane">
-            <div class="grid">
-                <section class="card" aria-labelledby="dashboardTitle">
-                    
-                    <div id="stockRiskAlerts" style="margin-bottom: 20px;" aria-live="polite">
-                        <p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>
-                    </div>
-                                        <h2 id="dashboardTitle">Visão geral</h2>
-                    <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
-
-                    <div class="balances" style="margin-top:12px">
-                        <div class="balance" aria-live="polite">
-                            <div class="bal-title">Saldo</div>
-                            <div id="saldo" class="bal-value">R$ 0,00</div>
-                        </div>
-                        <div class="balance">
-                            <div class="bal-title">Receitas (últimos 30 dias)</div>
-                            <div id="receitas" class="bal-value">R$ 0,00</div>
-                        </div>
-                        <div class="balance">
-                            <div class="bal-title">Despesas (últimos 30 dias)</div>
-                            <div id="despesas" class="bal-value">R$ 0,00</div>
-                        </div>
-                    </div>
-
-                    <div class="chart-wrapper">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
-                            <h3 class="compact">Resumo financeiro</h3>
-                            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
-                                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                            </svg>
-                    </div>
-                        <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
-                    </div>
-
-                    <div class="transactions-wrapper">
-                        <h3 class="compact">Últimas transações</h3>
-                        <div style="overflow:auto; max-height:260px; margin-top:8px">
-                            <table id="txTable" aria-live="polite">
-                                <thead>
-                                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
-                                </thead>
-                                <tbody></tbody>
-                        </div>
-                </div>
-                </section>
-
-                <aside class="card" aria-labelledby="formTitle">
-                    <h2 id="formTitle">Adicionar transação</h2>
-                    <form id="txForm">
-                        <label for="type">Tipo</label>
-                        <select id="type" required aria-required="true">
-                            <option value="credit">Receita</option>
-                            <option value="debit">Despesa</option>
-                        </select>
-
-                        <label for="date">Data</label>
-                        <input type="date" id="date" required />
-
-                        <label for="desc">Descrição</label>
-                        <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
-
-                        <label for="category">Categoria</label>
-                        <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
-
-                        <label for="amount">Valor (R$)</label>
-                        <input type="number" id="amount" step="0.01" placeholder="0.00" required />
-
-                        <div class="actions">
-                            <button type="submit" aria-label="Salvar transação">Salvar</button>
-                            <button type="button" id="clearBtn" class="secondary">Limpar</button>
-                        </div>
-                    </form>
-
-                    <hr style="margin:14px 0" />
-
-                    <div>
-                        <h3 class="compact">Importante</h3>
-                        <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
-                        <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
-                    </div>
-                </aside>
-            </div>
-        </section>
-
-        <section id="stock-content" data-tab-content="stock" class="tab-pane" style="display:none;">
-            <div class="grid">
-                <section class="card" aria-labelledby="stockListTitle">
-                    <h2 id="stockListTitle">Itens em Estoque</h2>
-                    
-                    <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
-                    
-                    <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
-                    
-                    <div style="overflow:auto; margin-top:16px">
-                        <table id="stockTable" aria-live="polite">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Produto</th>
-                                    <th>Categoria</th>
-                                    <th>Qtde</th>
-                                    <th>Vlr Unitário</th>
-                                    <th>Vlr Total</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <aside class="card" aria-labelledby="stockFormTitle">
-                    <h2 id="stockFormTitle">Adicionar/Atualizar Item</h2>
-                    <form id="stockForm">
-                        <label for="stockCode">Código do Produto</label>
-                        <input type="text" id="stockCode" placeholder="Ex: A001" required />
-
-                        <label for="stockName">Nome do Produto</label>
-                        <input type="text" id="stockName" placeholder="Ex: Camiseta P" required />
-
-                        <label for="stockCategory">Categoria</label>
-                        <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
-
-                        <label for="stockPrice">Valor Unitário (R$)</label>
-                        <input type="number" id="stockPrice" step="0.01" min="0" placeholder="0.00" required />
-
-                        <label for="stockQuantity">Quantidade</label>
-                        <input type="number" id="stockQuantity" min="0" placeholder="0" required />
-
-                        <div class="actions">
-                            <button type="submit" class="stock-action-btn" aria-label="Salvar item">Salvar Item</button>
-                            <button type="button" id="clearStockBtn" class="secondary">Limpar</button>
-                        </div>
-                    </form>
-
-                    <hr style="margin:14px 0" />
-
-                    <div>
-                        <h3 class="compact">Dicas</h3>
-                        <p class="help">Use um código único para cada produto. Mantenha a quantidade atualizada para um controle preciso.</p>
-                        <p class="help" style="margin-top:8px">Produtos com quantidade **menor que 5** serão destacados em vermelho.</p>
-                    </div>
-                </aside>
-            </div>
-        </section>
-
-        <section id="tasks-content" data-tab-content="tasks" class="tab-pane" style="display:none;">
+    <main class="tab-content" role="main">
+        <section id="dashboard-content" data-tab-content="dashboard" class="tab-pane">
             <div class="grid">
-                <section class="card" aria-labelledby="taskListTitle">
-                    <h2 id="taskListTitle">Tarefas do Dia a Dia</h2>
-                    <p class="help">Marque as tarefas como concluídas com um clique. A lista é salva no navegador (localStorage).</p>
-                    
-                    <div style="margin-top: 16px;">
-                        <ul id="taskList" class="task-list">
-                            </ul>
+                <section class="card" aria-labelledby="dashboardTitle">
+                    <h2 id="dashboardTitle">Visão geral</h2>
+                    <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
+
+                    <div class="balances" style="margin-top:12px">
+                        <div class="balance" aria-live="polite">
+                            <div class="bal-title">Saldo</div>
+                            <div id="saldo" class="bal-value">R$ 0,00</div>
+                        </div>
+                        <div class="balance">
+                            <div class="bal-title">Receitas (últimos 30 dias)</div>
+                            <div id="receitas" class="bal-value">R$ 0,00</div>
+                        </div>
+                        <div class="balance">
+                            <div class="bal-title">Despesas (últimos 30 dias)</div>
+                            <div id="despesas" class="bal-value">R$ 0,00</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
+                            <h3 class="compact">Resumo financeiro</h3>
+                            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
+                                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+                    </div>
+
+                    <div class="transactions-wrapper">
+                        <h3 class="compact">Últimas transações</h3>
+                        <div style="overflow:auto; max-height:260px; margin-top:8px">
+                            <table id="txTable" aria-live="polite">
+                                <thead>
+                                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
-                <aside class="card" aria-labelledby="taskFormTitle">
-                    <h2 id="taskFormTitle">Adicionar Nova Tarefa</h2>
-                    <form id="taskForm">
-                        <label for="taskDesc">Descrição da Tarefa</label>
-                        <textarea id="taskDesc" placeholder="Ex: Ligar para fornecedor 'X', Enviar Nota Fiscal de hoje" required rows="3"></textarea>
+                <aside class="card" aria-labelledby="formTitle">
+                    <h2 id="formTitle">Adicionar transação</h2>
+                    <form id="txForm">
+                        <label for="type">Tipo</label>
+                        <select id="type" required aria-required="true">
+                            <option value="credit">Receita</option>
+                            <option value="debit">Despesa</option>
+                        </select>
+
+                        <label for="date">Data</label>
+                        <input type="date" id="date" required />
+
+                        <label for="desc">Descrição</label>
+                        <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
+
+                        <label for="category">Categoria</label>
+                        <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
+
+                        <label for="amount">Valor (R$)</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required />
 
                         <div class="actions">
-                            <button type="submit" class="task-action-btn" aria-label="Adicionar Tarefa">Adicionar</button>
-                            <button type="button" id="clearTaskFormBtn" class="secondary">Limpar</button>
+                            <button type="submit" aria-label="Salvar transação">Salvar</button>
+                            <button type="button" id="clearBtn" class="secondary">Limpar</button>
                         </div>
                     </form>
 
                     <hr style="margin:14px 0" />
-                    
+
                     <div>
-                        <h3 class="compact">Foco</h3>
-                        <p class="help">Mantenha a lista de tarefas pequena e focada nas prioridades do dia para aumentar a produtividade.</p>
-                    </div>
+                        <h3 class="compact">Importante</h3>
+                        <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
+                        <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
+                    </div>
                 </aside>
             </div>
         </section>
-            </main>
-    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
-      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-          <h3>Ajuda — Como usar</h3>
-          <button id="closeHelp" class="secondary">Fechar</button>
-        </div>
-        <div style="margin-top:8px">
-          <ol>
-            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
-            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
-            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
 
-  </div>
+        <section id="stock-content" data-tab-content="stock" class="tab-pane" style="display:none;">
+            <div class="grid">
+                <section class="card" aria-labelledby="stockListTitle">
+                    <h2 id="stockListTitle">Itens em Estoque</h2>
+                    
+                    <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
+                    
+                    <div id="stockRiskAlerts">
+                    </div>
+                    
+                    <p class="help" style="margin-top: 12px;">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
+                    
+                    <div style="overflow:auto; margin-top:16px">
+                        <table id="stockTable" aria-live="polite">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Qtde</th>
+                                    <th>Vlr Unitário</th>
+                                    <th>Vlr Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
-  <script>
-    moment.locale('pt-br'); 
-    
-    // --- Utilitários ---
-    const $ = selector => document.querySelector(selector);
-    const qs = selector => document.querySelectorAll(selector);
+                <aside class="card" aria-labelledby="stockFormTitle">
+                    <h2 id="stockFormTitle">Adicionar/Atualizar Item</h2>
+                    <form id="stockForm">
+                        <label for="stockCode">Código do Produto</label>
+                        <input type="text" id="stockCode" placeholder="Ex: A001" required />
 
-    // FINANCEIRO
-    const txForm = $('#txForm');
-    const typeEl = $('#type');
-    const dateEl = $('#date');
-    const descEl = $('#desc');
-    const catEl = $('#category');
-    const amountEl = $('#amount');
-    const txTableBody = $('#txTable tbody');
-    const SALTO_KEY = 'drivor_tx_v1';
+                        <label for="stockName">Nome do Produto</label>
+                        <input type="text" id="stockName" placeholder="Ex: Camiseta P" required />
 
-    // ESTOQUE
-    const stockForm = $('#stockForm');
-    const stockCodeEl = $('#stockCode');
-    const stockNameEl = $('#stockName');
-    const stockCategoryEl = $('#stockCategory');
-    const stockPriceEl = $('#stockPrice'); 
-    const stockQuantityEl = $('#stockQuantity');
-    const stockTableBody = $('#stockTable tbody');
-    const stockFilterEl = $('#stockFilter'); 
-    const STOCK_KEY = 'katalis_stock_v1'; 
+                        <label for="stockCategory">Categoria</label>
+                        <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
 
-    // TAREFAS (NOVO)
-    const taskForm = $('#taskForm');
-    const taskDescEl = $('#taskDesc');
-    const taskListEl = $('#taskList');
-    const TASKS_KEY = 'katalis_tasks_v1';
+                        <label for="stockPrice">Valor Unitário (R$)</label>
+                        <input type="number" id="stockPrice" step="0.01" min="0" placeholder="0.00" required />
+
+                        <label for="stockQuantity">Quantidade</label>
+                        <input type="number" id="stockQuantity" min="0" placeholder="0" required />
+
+                        <div class="actions">
+                            <button type="submit" class="stock-action-btn" aria-label="Salvar item">Salvar Item</button>
+                            <button type="button" id="clearStockBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Dicas</h3>
+                        <p class="help">Use um código único para cada produto. Mantenha a quantidade atualizada para um controle preciso.</p>
+                        <p class="help" style="margin-top:8px">Produtos com quantidade **menor que 5** serão destacados em vermelho.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="rh-content" data-tab-content="rh" class="tab-pane" style="display:none;">
+            <div class="grid">
+                <section class="card" aria-labelledby="employeesListTitle">
+                    <h2 id="employeesListTitle">Funcionários Cadastrados</h2>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 class="compact">Próximo Pagamento Agendado: <span id="paymentDateDisplay" style="font-weight: 700;">N/A</span></h3>
+                        <button id="setPaymentDateBtn" class="rh-action-btn" aria-label="Agendar próximo pagamento">Agendar Pagamento</button>
+                    </div>
+
+                    <div style="overflow:auto; margin-top:16px">
+                        <table id="employeeTable" aria-live="polite">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Cargo</th>
+                                    <th>Salário</th>
+                                    <th>Pagamento Cumprido</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="card" aria-labelledby="employeeFormTitle">
+                    <h2 id="employeeFormTitle">Cadastrar Funcionário</h2>
+                    <form id="employeeForm">
+                        <label for="empName">Nome do Funcionário</label>
+                        <input type="text" id="empName" placeholder="Nome Completo" required />
+
+                        <label for="empRole">Cargo</label>
+                        <select id="empRole" required>
+                            <option value="Gerente">Gerente</option>
+                            <option value="Auxiliar">Auxiliar</option>
+                            <option value="Vendedor">Vendedor</option>
+                            <option value="Estagiário">Estagiário</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+
+                        <label for="empSalary">Salário (R$)</label>
+                        <input type="number" id="empSalary" step="0.01" min="0" placeholder="0.00" required />
+
+                        <div class="actions">
+                            <button type="submit" class="rh-action-btn" aria-label="Salvar funcionário">Salvar Funcionário</button>
+                            <button type="button" id="clearEmpBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Notificação de Pagamento</h3>
+                        <p class="help">A "bolinha vermelha" na aba RH aparece na data agendada para lembrá-lo do pagamento. Marque como "CUMPRIDO" para limpar o alerta.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+    </main>
+    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
+      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3>Ajuda — Como usar</h3>
+          <button id="closeHelp" class="secondary">Fechar</button>
+        </div>
+        <div style="margin-top:8px">
+          <ol>
+            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
+            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
+            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div id="paymentModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
+        <div class="card" style="width:95%; max-width:400px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+            <h3>Agendar Próximo Pagamento</h3>
+            <p class="help">Selecione a data em que o pagamento dos salários deve ser realizado. Isso ativará o alerta na aba RH.</p>
+            <form id="paymentDateForm" style="margin-top: 15px;">
+                <label for="scheduledPaymentDate">Data de Vencimento</label>
+                <input type="date" id="scheduledPaymentDate" required />
+                <div class="actions" style="margin-top: 15px;">
+                    <button type="submit" class="rh-action-btn">Salvar Data</button>
+                    <button type="button" id="closePaymentModal" class="secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+  <script>
+    moment.locale('pt-br'); 
+    
+    // --- Utilitários ---
+    const $ = selector => document.querySelector(selector);
+    const qs = selector => document.querySelectorAll(selector);
+
+    // CHAVES DE LOCALSTORAGE
+    const SALTO_KEY = 'drivor_tx_v1';
+    const STOCK_KEY = 'katalis_stock_v1'; 
+    const EMP_KEY = 'katalis_emp_v1'; // NOVA CHAVE RH
+    const PAY_KEY = 'katalis_pay_date_v1'; // NOVA CHAVE PAGAMENTO
+
+    // ELEMENTOS COMUNS
+    const dateEl = $('#date');
+    
+    // RH
+    const employeeForm = $('#employeeForm');
+    const empNameEl = $('#empName');
+    const empRoleEl = $('#empRole');
+    const empSalaryEl = $('#empSalary');
+    const employeeTableBody = $('#employeeTableBody');
+    const rhBadge = $('#rh-notification-badge'); // Bolinha de notificação
+    const paymentDateDisplay = $('#paymentDateDisplay'); // Data agendada na tabela
+    const paymentModal = $('#paymentModal'); // Modal de agendamento
+    const paymentDateForm = $('#paymentDateForm');
+    const scheduledPaymentDateEl = $('#scheduledPaymentDate');
 
     // ------------------------------------
-    // LÓGICA DE TAREFAS (NOVA)
+    // LÓGICA DE RH (CRUD + PAGAMENTO)
     // ------------------------------------
 
-    function loadTasks() {
-        try {
-            const raw = localStorage.getItem(TASKS_KEY);
+    function loadEmployees(){
+        try{
+            const raw = localStorage.getItem(EMP_KEY);
             return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            console.error('Erro ao carregar tarefas', e);
+        }catch(e){
+            console.error('Erro ao carregar funcionários', e);
             return [];
         }
     }
-
-    function saveTasks(list) {
-        localStorage.setItem(TASKS_KEY, JSON.stringify(list));
+    function saveEmployees(list){
+        localStorage.setItem(EMP_KEY, JSON.stringify(list));
     }
 
-    taskForm.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        const taskText = taskDescEl.value.trim();
-        if (!taskText) return;
+    // Carrega/Salva a data de pagamento
+    function loadPaymentDate() {
+        return localStorage.getItem(PAY_KEY);
+    }
+    function savePaymentDate(date) {
+        localStorage.setItem(PAY_KEY, date);
+    }
+    function clearPaymentDate() {
+        localStorage.removeItem(PAY_KEY);
+    }
 
-        const list = loadTasks();
-        const newTask = {
+    employeeForm.addEventListener('submit', (ev)=>{
+        ev.preventDefault();
+        const newEmployee = {
             id: Date.now(),
-            text: taskText,
-            completed: false
+            name: empNameEl.value.trim(),
+            role: empRoleEl.value.trim(),
+            salary: Number(empSalaryEl.value) || 0
         };
-        list.push(newTask);
-        saveTasks(list);
-        taskForm.reset();
-        renderTasks();
+        
+        const list = loadEmployees();
+        list.push(newEmployee);
+
+        saveEmployees(list);
+        employeeForm.reset();
+        renderRH();
+        empNameEl.focus();
     });
 
-    $('#clearTaskFormBtn').addEventListener('click', () => taskForm.reset());
+    $('#clearEmpBtn').addEventListener('click', ()=> employeeForm.reset());
 
-    function toggleTaskCompletion(id) {
-        const list = loadTasks();
-        const index = list.findIndex(t => t.id === id);
-        if (index > -1) {
-            list[index].completed = !list[index].completed;
-            saveTasks(list);
-            renderTasks();
+    function removeEmployee(id){
+        if(confirm("Tem certeza que deseja remover este funcionário?")){
+            const list = loadEmployees().filter(e => e.id !== id);
+            saveEmployees(list);
+            renderRH();
         }
     }
 
-    function removeTask(id) {
-        const list = loadTasks().filter(t => t.id !== id);
-        saveTasks(list);
-        renderTasks();
+    function fulfillPayment(id) {
+        const list = loadEmployees();
+        const employee = list.find(e => e.id === id);
+
+        if (employee) {
+            // Regra de negócios: Quando um funcionário é marcado como "Pago", 
+            // a data de pagamento agendada é removida (limpando o alerta).
+            if (confirm(`Deseja registrar o pagamento de ${employee.name} e remover o alerta agendado?`)) {
+                
+                // NOTA: Para um sistema real, aqui você registraria a transação de despesa.
+                // Aqui, vamos apenas remover o alerta.
+                
+                // Se fosse um sistema de múltiplos pagamentos por mês, a lógica seria mais complexa.
+                // Como é um sistema simples, limpar o alerta é suficiente.
+                
+                clearPaymentDate();
+                renderRH(); // Re-renderiza para remover a bolinha
+            }
+        }
     }
 
-    function renderTasks() {
-        let list = loadTasks();
-        // Ordena: não concluídas primeiro, depois as concluídas
-        list.sort((a, b) => a.completed - b.completed);
-
-        taskListEl.innerHTML = '';
-        if (list.length === 0) {
-            taskListEl.innerHTML = '<p class="help" style="padding: 10px 0;">Nenhuma tarefa pendente. Comece adicionando uma!</p>';
-            return;
+    // Lógica do Modal de Pagamento
+    $('#setPaymentDateBtn').addEventListener('click', () => {
+        const current = loadPaymentDate();
+        if (current) {
+            scheduledPaymentDateEl.value = current;
+        } else {
+            // Seta para o primeiro dia do próximo mês como padrão
+            const nextMonth = moment().add(1, 'month').startOf('month').format('YYYY-MM-DD');
+            scheduledPaymentDateEl.value = nextMonth;
         }
+        paymentModal.style.display = 'flex';
+    });
 
-        for (const task of list) {
-            const li = document.createElement('li');
-            li.className = 'task-item';
+    $('#closePaymentModal').addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+    });
+
+    paymentDateForm.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const date = scheduledPaymentDateEl.value;
+        savePaymentDate(date);
+        paymentModal.style.display = 'none';
+        renderRH();
+    });
+
+    /**
+     * Verifica a data de pagamento e ativa/desativa a bolinha de notificação.
+     */
+    function updateRHNotification() {
+        const scheduledDate = loadPaymentDate();
+        const today = moment().startOf('day');
+        
+        rhBadge.classList.remove('active');
+        paymentDateDisplay.textContent = 'N/A';
+        
+        if (scheduledDate) {
+            const paymentDate = moment(scheduledDate, 'YYYY-MM-DD').startOf('day');
+
+            // Exibe a data
+            paymentDateDisplay.textContent = paymentDate.format('DD/MM/YYYY');
             
-            const isCompletedClass = task.completed ? 'completed' : '';
+            // Se a data de pagamento for hoje ou já tiver passado
+            if (paymentDate.isSameOrBefore(today)) {
+                rhBadge.classList.add('active');
+            }
+        }
+    }
 
-            li.innerHTML = `
-                <input type="checkbox" class="task-checkbox" data-id="${task.id}" ${task.completed ? 'checked' : ''} aria-label="Marcar como concluída: ${escapeHtml(task.text)}">
-                <span class="task-text ${isCompletedClass}" data-id="${task.id}" aria-label="Tarefa: ${escapeHtml(task.text)}">${escapeHtml(task.text)}</span>
-                <button class="task-remove-btn" data-id="${task.id}" aria-label="Remover tarefa">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4l.6-1.558A2 2 0 0 0 4.75 2H3.5v1h11V2h-1.25a2 2 0 0 0-1.748.868L12.382 4H4.118zM6 3v1h4V3H6z"/>
-                    </svg>
-                </button>
+    function renderRH(){
+        const employees = loadEmployees().sort((a,b)=> a.name.localeCompare(b.name));
+        employeeTableBody.innerHTML = '';
+
+        for(const emp of employees){
+            const tr = document.createElement('tr');
+            
+            // O botão de pagamento só aparece se houver uma data agendada no passado/hoje
+            const showPaymentBtn = rhBadge.classList.contains('active');
+            
+            const btnHtml = showPaymentBtn 
+                ? `<button class="payment-fulfilled-btn" data-id="${emp.id}" aria-label="Marcar pagamento de salário como cumprido">CUMPRIDO</button>`
+                : `<span class="help">Aguardando vencimento</span>`;
+
+            const paymentStatus = showPaymentBtn 
+                ? `<span style="color: var(--danger); font-weight: 700;">PENDENTE</span>`
+                : `<span style="color: var(--success);">OK</span>`;
+
+            tr.innerHTML = `
+                <td data-label="Nome:">${escapeHtml(emp.name)}</td>
+                <td data-label="Cargo:">${escapeHtml(emp.role)}</td>
+                <td data-label="Salário:">${formatBRL(emp.salary)}</td>
+                <td data-label="Status:">${paymentStatus}</td>
+                <td>
+                    ${btnHtml}
+                    <button data-id="${emp.id}" class="secondary danger" style="margin-top: 5px;" aria-label="Remover funcionário">Remover</button>
+                </td>
             `;
-            
-            // Adiciona listeners
-            li.querySelector('.task-checkbox').addEventListener('change', (e) => toggleTaskCompletion(Number(e.target.dataset.id)));
-            li.querySelector('.task-text').addEventListener('click', (e) => toggleTaskCompletion(Number(e.target.dataset.id)));
-            li.querySelector('.task-remove-btn').addEventListener('click', (e) => removeTask(Number(e.target.dataset.id)));
 
-            taskListEl.appendChild(li);
+            if (showPaymentBtn) {
+                tr.querySelector('.payment-fulfilled-btn').addEventListener('click', (e)=> fulfillPayment(Number(e.target.dataset.id)));
+            }
+
+            tr.querySelector('.danger').addEventListener('click', (e)=> removeEmployee(Number(e.target.dataset.id)));
+            employeeTableBody.appendChild(tr);
         }
+        
+        updateRHNotification(); // Atualiza a bolinha e a data agendada
     }
 
-
-    // ------------------------------------
-    // LÓGICA DE ESTOQUE (CRUD + FILTRO) - Mantida
-    // ------------------------------------
-
-    function loadStock(){
-        try{
-            const raw = localStorage.getItem(STOCK_KEY);
-            return raw ? JSON.parse(raw) : [];
-        }catch(e){
-            console.error('Erro ao carregar estoque', e);
-            return [];
-        }
-    }
-    function saveStock(list){
-        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
-    }
-
-    stockForm.addEventListener('submit', (ev)=>{
-        ev.preventDefault();
-        const itemCode = stockCodeEl.value.trim().toUpperCase();
-        const itemName = stockNameEl.value.trim();
-        const itemCat = stockCategoryEl.value.trim() || 'Geral';
-        const itemPrice = Number(stockPriceEl.value) || 0; 
-        const itemQty = Number(stockQuantityEl.value) || 0;
-        
-        const list = loadStock();
-        const existingIndex = list.findIndex(item => item.code === itemCode);
-
-        const newItem = {
-            code: itemCode,
-            name: itemName,
-            category: itemCat,
-            price: itemPrice, 
-            quantity: itemQty
-        };
-
-        if(existingIndex > -1){
-            // Atualiza item existente
-            list[existingIndex] = newItem;
-        } else {
-            // Adiciona novo item
-            list.push(newItem);
-        }
-
-        saveStock(list);
-        stockForm.reset();
-        renderStock();
-        stockCodeEl.focus();
-        // Atualiza alertas após mudar estoque
-        checkStockRisk();
-    });
-
-    $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
-
-    function removeItem(code){
-        const list = loadStock().filter(t => t.code !== code);
-        saveStock(list);
-        renderStock();
-        // Atualiza alertas após remover estoque
-        checkStockRisk();
-    }
-
-    // Função de filtragem em tempo real
-    stockFilterEl.addEventListener('input', renderStock);
-
-    function renderStock(){
-        const filterText = stockFilterEl.value.toLowerCase();
-        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
-
-        // Aplica o filtro
-        if (filterText) {
-            list = list.filter(item => 
-                item.code.toLowerCase().includes(filterText) ||
-                item.name.toLowerCase().includes(filterText) ||
-                item.category.toLowerCase().includes(filterText)
-            );
-        }
-
-        stockTableBody.innerHTML = '';
-
-        for(const item of list){
-            const isLowStock = item.quantity < 5;
-            const quantityClass = isLowStock ? 'low-stock' : '';
-            const totalValue = item.price * item.quantity; 
-
-            const tr = document.createElement('tr');
-            // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
-            tr.innerHTML = `
-                <td data-label="Cód:">${escapeHtml(item.code)}</td>
-                <td data-label="Produto:">${escapeHtml(item.name)}</td>
-                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
-                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
-                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
-                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
-                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
-            `;
-            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
-            stockTableBody.appendChild(tr);
-        }
-    }
-
-    // ------------------------------------
-    // LÓGICA DE FINANÇAS (MANTIDA E ATUALIZADA) - Mantida
-    // ------------------------------------
-
-    function loadTx(){
-      try{
-        const raw = localStorage.getItem(SALTO_KEY);
-        return raw ? JSON.parse(raw) : [];
-      }catch(e){
-        console.error('Erro ao carregar dados financeiros', e);
-        return [];
-      }
-    }
-    function saveTx(list){
-      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
-    }
-
-    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
-
-    txForm.addEventListener('submit', (ev)=>{
-      ev.preventDefault();
-      const tx = {
-        id: Date.now(),
-        type: typeEl.value,
-        date: dateEl.value || new Date().toISOString().slice(0,10),
-        desc: descEl.value.trim() || '(sem descrição)',
-        category: catEl.value.trim() || 'Outros',
-        amount: Number(amountEl.value) || 0
-      };
-      const list = loadTx();
-      list.push(tx);
-      saveTx(list);
-      txForm.reset();
-      render();
-      typeEl.focus();
-    });
-
-    function removeTx(id){
-      const list = loadTx().filter(t => t.id !== id);
-      saveTx(list);
-      render();
-    }
-
-    function formatBRL(v){
-      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-    }
-
-    function summarize(list){
-      let saldo = 0, receitas = 0, despesas = 0;
-      const last30 = new Date(); last30.setDate(last30.getDate()-30);
-      let receitas30 = 0, despesas30 = 0;
-      list.forEach(t => {
-        if(t.type === 'credit'){
-          saldo += t.amount; receitas += t.amount;
-          if(new Date(t.date) >= last30) receitas30 += t.amount;
-        }else{
-          saldo -= t.amount; despesas += t.amount;
-          if(new Date(t.date) >= last30) despesas30 += t.amount;
-        }
-      });
-      return {saldo, receitas, despesas, receitas30, despesas30};
-    }
-
     // ------------------------------------
-    // LÓGICA DE ALERTA DE RISCO DE ESTOQUE (PROATIVA) - Mantida
+    // FUNÇÕES FINANCEIRAS (MANTIDAS)
     // ------------------------------------
+    function loadTx(){
+      try{
+        const raw = localStorage.getItem(SALTO_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        console.error('Erro ao carregar dados financeiros', e);
+        return [];
+      }
+    }
+    function saveTx(list){
+      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
+    }
 
-    // Dias de análise de vendas e limite de dias para alerta
-    const ANALYSIS_DAYS = 30;
-    const ALERT_LIMIT_DAYS = 7; // Alerta se for esgotar em até 7 dias
+    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
 
-    function checkStockRisk() {
-        const allTx = loadTx();
-        const stockList = loadStock();
-        const alertsContainer = $('#stockRiskAlerts');
-        alertsContainer.innerHTML = ''; // Limpa alertas anteriores
+    txForm.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+      const tx = {
+        id: Date.now(),
+        type: typeEl.value,
+        date: dateEl.value || new Date().toISOString().slice(0,10),
+        desc: descEl.value.trim() || '(sem descrição)',
+        category: catEl.value.trim() || 'Outros',
+        amount: Number(amountEl.value) || 0
+      };
+      const list = loadTx();
+      list.push(tx);
+      saveTx(list);
+      txForm.reset();
+      render();
+      typeEl.focus();
+    });
 
-        // 1. Coleta e soma as vendas dos últimos 30 dias por descrição (item)
-        const dateLimit = moment().subtract(ANALYSIS_DAYS, 'days').startOf('day');
-        // Usaremos um mapa para rastrear a quantidade vendida de cada item (baseado na 'desc' da transação)
-        const salesVolume = {};
-        let hasSales = false;
+    function removeTx(id){
+      const list = loadTx().filter(t => t.id !== id);
+      saveTx(list);
+      render();
+    }
 
-        allTx.forEach(t => {
-            // Assume que uma RECEITA (credit) é uma venda de produto para a análise de risco.
-            if (t.type === 'credit' && moment(t.date).isSameOrAfter(dateLimit)) {
-                hasSales = true;
-                // Usa a descrição (nome do produto) como identificador de item vendido. 
-                const itemKey = t.desc.trim().toLowerCase(); 
-                // Assumimos que cada transação de 'Receita' representa a venda de UMA UNIDADE do item para simplificar o cálculo.
-                // Em um sistema real, essa lógica precisaria ser mais robusta (ex: transações de venda com múltiplos itens).
-                salesVolume[itemKey] = (salesVolume[itemKey] || 0) + 1; 
+    function formatBRL(v){
+      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    }
+
+    function summarize(list){
+      let saldo = 0, receitas = 0, despesas = 0;
+      const last30 = new Date(); last30.setDate(last30.getDate()-30);
+      let receitas30 = 0, despesas30 = 0;
+      list.forEach(t => {
+        if(t.type === 'credit'){
+          saldo += t.amount; receitas += t.amount;
+          if(new Date(t.date) >= last30) receitas30 += t.amount;
+        }else{
+          saldo -= t.amount; despesas += t.amount;
+          if(new Date(t.date) >= last30) despesas30 += t.amount;
+        }
+      });
+      return {saldo, receitas, despesas, receitas30, despesas30};
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    $('#exportBtn').addEventListener('click', ()=>{
+      const list = loadTx();
+      if(!list.length){ alert('Não há dados para exportar.'); return; }
+      const header = ['id','date','type','description','category','amount'];
+      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
+      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; 
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    const helpModal = $('#helpModal');
+    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
+    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
+    function showHelp(show){
+      helpModal.style.display = show ? 'flex' : 'none';
+      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
+
+    // --- LÓGICA DAS ABAS (TABS) ---
+    const tabLinks = qs('.tab-link');
+    const tabPanes = qs('.tab-pane');
+
+    tabLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.target.getAttribute('data-tab-id');
+            
+            // Remove 'active' de todos os links e oculta todos os conteúdos
+            tabLinks.forEach(l => {
+                l.classList.remove('active');
+                l.setAttribute('aria-selected', 'false');
+            });
+            tabPanes.forEach(p => {
+                p.style.display = 'none';
+            });
+
+            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
+            e.target.classList.add('active');
+            e.target.setAttribute('aria-selected', 'true');
+            $(`#${targetId}-content`).style.display = 'block';
+            
+            // Renderiza o conteúdo correto ao mudar de aba
+            if (targetId === 'dashboard') {
+                render(); 
+                if(chart) chart.resize();
+            } else if (targetId === 'stock') {
+                renderStock();
+            } else if (targetId === 'rh') { // NOVO: Renderiza RH
+                renderRH();
             }
         });
+    });
+    // --- FIM DA LÓGICA DAS ABAS ---
 
+    // --- Chart support ---
+    let chart = null;
 
-        // 2. Compara com o estoque atual e calcula a previsão de esgotamento
-        stockList.forEach(item => {
-            const itemKey = item.name.trim().toLowerCase(); // Correlaciona pelo Nome do Produto
-            
-            // Volume de vendas total do item nos últimos 30 dias
-            const totalSales = salesVolume[itemKey] || 0;
-            const avgDailySales = totalSales / ANALYSIS_DAYS;
-            const currentQty = item.quantity;
+    // Função de atualização simplificada para focar APENAS no gráfico de pizza
+    function updateChart(list){
+      const days = 30;
+      let totalCredits = 0;
+      let totalDebits = 0;
 
-            // Se a venda diária for maior que zero e a quantidade atual for menor que o limite de risco (7 dias de venda)
-            if (avgDailySales > 0 && currentQty > 0) {
-                const daysRemaining = currentQty / avgDailySales;
-                
-                if (daysRemaining <= ALERT_LIMIT_DAYS) {
-                    const days = Math.max(0, Math.floor(daysRemaining)); // Garante que não mostre dias negativos
-                    
-                    const alertMessage = `
-                        <div class="risk-alert-card">
-                            <strong>⚠️ Risco de Estoque: ${escapeHtml(item.name)} (${escapeHtml(item.code)})</strong>
-                            Com a taxa de vendas atual (${avgDailySales.toFixed(1)}/dia), o estoque deve esgotar em **${days <= 0 ? 'menos de 1' : days} dia(s)**. **Aja rapidamente!**
-                        </div>
-                    `;
-                    alertsContainer.innerHTML += alertMessage;
+      const date30Days = new Date();
+      date30Days.setDate(date30Days.getDate() - days);
+
+      list.forEach(t => {
+        if (new Date(t.date) >= date30Days) {
+            if(t.type === 'credit') totalCredits += t.amount;
+            else totalDebits += t.amount;
+        }
+      });
+
+      const ctx = document.getElementById('summaryChart').getContext('2d');
+      if(chart) chart.destroy(); 
+
+      let chartConfig = {
+        type: 'pie', 
+        data: {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{
+                data: [totalCredits, totalDebits],
+                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
+                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
+            }]
+        },
+        options: {
+          responsive:true, 
+          maintainAspectRatio:false, 
+          plugins:{
+            legend:{position:'bottom'},
+            tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                      label += formatBRL(context.parsed);
+                    }
+                    return label;
+                  }
+                }
+            }
+          },
+          scales: {}
+        }
+      };
+
+      chart = new Chart(ctx, chartConfig);
+    }
+
+    function render(){
+      const list = loadTx().sort((a,b)=> b.id - a.id);
+      txTableBody.innerHTML = '';
+      for(const t of list){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Data:">${t.date}</td>
+          <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
+          <td data-label="Cat.:">${escapeHtml(t.category)}</td>
+          <td data-label="Valor:" class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
+          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
+        `;
+        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
+        txTableBody.appendChild(tr);
+      }
+
+      const s = summarize(list);
+      $('#saldo').textContent = formatBRL(s.saldo);
+      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
+
+      updateChart(list); 
+    }
+    
+    // ------------------------------------
+    // LÓGICA DE ESTOQUE (MANTIDA)
+    // ------------------------------------
+    function loadStock(){
+        try{
+            const raw = localStorage.getItem(STOCK_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar estoque', e);
+            return [];
+        }
+    }
+    function saveStock(list){
+        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    }
+    
+    // ... Funções de Estoque (calculateStockRisk, renderStock, etc.) omitidas para brevidade, mas devem estar no código final.
+    // Lembre-se de manter todas as funções que você já tinha aqui, como `calculateStockRisk()` e `renderStock()`.
+
+    function calculateStockRisk() {
+        // [CÓDIGO calculateStockRisk() DO PASSO ANTERIOR]
+        const stocks = loadStock();
+        const txs = loadTx().filter(t => t.type === 'credit'); 
+        const daysToAnalyze = 28; 
+        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
+        
+        const itemSales = {};
+
+        txs.forEach(t => {
+            const txDate = moment(t.date);
+            if (txDate.isSameOrAfter(analysisStartDate)) {
+                const code = t.category.trim().toUpperCase();
+                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
+                if (stockItemExists) {
+                    itemSales[code] = (itemSales[code] || 0) + 1;
                 }
             }
         });
 
-        // Adiciona uma mensagem de controle se não houver alertas e se houver dados para análise
-        if (!alertsContainer.innerHTML.trim() && hasSales && stockList.length > 0) {
-            alertsContainer.innerHTML = '<p class="help" style="color:var(--success); font-weight:600">✅ Estoque sob controle! Nenhuma previsão de esgotamento iminente nos próximos 7 dias.</p>';
-        } else if (stockList.length === 0) {
-             alertsContainer.innerHTML = '<p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>';
-        } else if (stockList.length > 0 && !hasSales) {
-             alertsContainer.innerHTML = '<p class="help">A análise de risco está ativa, mas é necessário registrar **Receitas** para calcular a taxa de vendas.</p>';
+        const riskItems = [];
+        
+        stocks.forEach(item => {
+            const code = item.code.toUpperCase();
+            const salesCount = itemSales[code] || 0;
+            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
+            
+            if (avgDailyConsumption > 0 && item.quantity > 0) {
+                const daysLeft = item.quantity / avgDailyConsumption;
+                const isRisk = daysLeft <= 10; 
+                
+                if (isRisk) {
+                    riskItems.push({
+                        code: item.code,
+                        name: item.name,
+                        daysLeft: Math.ceil(daysLeft),
+                        risk: isRisk
+                    });
+                }
+            }
+        });
+
+        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
+    }
+    
+    function renderStock(){
+        const filterText = $('#stockFilter').value.toLowerCase();
+        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+
+        if (filterText) {
+            list = list.filter(item => 
+                item.code.toLowerCase().includes(filterText) ||
+                item.name.toLowerCase().includes(filterText) ||
+                item.category.toLowerCase().includes(filterText)
+            );
+        }
+
+        $('#stockTable tbody').innerHTML = '';
+
+        for(const item of list){
+            const isLowStock = item.quantity < 5;
+            const quantityClass = isLowStock ? 'low-stock' : '';
+            const totalValue = item.price * item.quantity; 
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="Cód:">${escapeHtml(item.code)}</td>
+                <td data-label="Produto:">${escapeHtml(item.name)}</td>
+                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
+                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
+                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
+                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
+                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+            `;
+            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
+            $('#stockTable tbody').appendChild(tr);
+        }
+        
+        const riskItems = calculateStockRisk();
+        const container = $('#stockRiskAlerts');
+        container.innerHTML = '';
+
+        if (riskItems.length > 0) {
+            const alertsHtml = riskItems.map(item => {
+                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
+                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
+                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
+                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
+                </p>`;
+            }).join('');
+            container.innerHTML = alertsHtml;
+        } else {
+            container.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
         }
     }
-    // ------------------------------------
-    // FIM LÓGICAS
-    // ------------------------------------
+    // ... (Fim das funções de Estoque)
+    
+    // Inicializa o app
+    render();
+    renderStock();
+    renderRH(); // Inicializa o RH também
 
-    function escapeHtml(str){
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    $('#exportBtn').addEventListener('click', ()=>{
-      const list = loadTx();
-      if(!list.length){ alert('Não há dados para exportar.'); return; }
-      const header = ['id','date','type','description','category','amount'];
-      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
-      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; 
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
-
-    const helpModal = $('#helpModal');
-    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
-    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
-    function showHelp(show){
-      helpModal.style.display = show ? 'flex' : 'none';
-      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
-    }
-
-    // --- LÓGICA DAS ABAS (TABS) ---
-    const tabLinks = qs('.tab-link');
-    const tabPanes = qs('.tab-pane');
-
-    tabLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const targetId = e.target.getAttribute('data-tab-id');
-            
-            // Remove 'active' de todos os links e oculta todos os conteúdos
-            tabLinks.forEach(l => {
-                l.classList.remove('active');
-                l.setAttribute('aria-selected', 'false');
-            });
-            tabPanes.forEach(p => {
-                p.style.display = 'none';
-            });
-
-            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
-            e.target.classList.add('active');
-            e.target.setAttribute('aria-selected', 'true');
-            $(`#${targetId}-content`).style.display = 'block';
-            
-            // Renderiza o conteúdo correto ao mudar de aba
-            if (targetId === 'dashboard') {
-                render(); 
-                if(chart) chart.resize();
-            } else if (targetId === 'stock') {
-                renderStock();
-            } else if (targetId === 'tasks') {
-                renderTasks(); // NOVO: Renderiza a lista de tarefas
-            }
-        });
-    });
-    // --- FIM DA LÓGICA DAS ABAS ---
-
-    // --- Chart support ---
-    let chart = null;
-
-    // Função de atualização simplificada para focar APENAS no gráfico de pizza
-    function updateChart(list){
-      const days = 30;
-      let totalCredits = 0;
-      let totalDebits = 0;
-
-      const date30Days = new Date();
-      date30Days.setDate(date30Days.getDate() - days);
-
-      list.forEach(t => {
-        if (new Date(t.date) >= date30Days) {
-            if(t.type === 'credit') totalCredits += t.amount;
-            else totalDebits += t.amount;
-        }
-      });
-
-      const ctx = document.getElementById('summaryChart').getContext('2d');
-      if(chart) chart.destroy(); 
-
-      let chartConfig = {
-        type: 'pie', 
-        data: {
-            labels: ['Receitas', 'Despesas'],
-            datasets: [{
-                data: [totalCredits, totalDebits],
-                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
-                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
-            }]
-        },
-        options: {
-          responsive:true, 
-          maintainAspectRatio:false, 
-          plugins:{
-            legend:{position:'bottom'},
-            tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    let label = context.label || '';
-                    if (label) {
-                      label += ': ';
-                    }
-                    if (context.parsed !== null) {
-                      label += formatBRL(context.parsed);
-                    }
-                    return label;
-                  }
-                }
-            }
-          },
-          scales: {}
-        }
-      };
-
-      chart = new Chart(ctx, chartConfig);
-    }
-
-    function render(){
-      const list = loadTx().sort((a,b)=> b.id - a.id);
-      txTableBody.innerHTML = '';
-      for(const t of list){
-        const tr = document.createElement('tr');
-        // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
-        tr.innerHTML = `
-          <td data-label="Data:">${t.date}</td>
-          <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
-          <td data-label="Cat.:">${escapeHtml(t.category)}</td>
-          <td data-label="Valor:" class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
-          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
-        `;
-        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
-        txTableBody.appendChild(tr);
-      }
-
-      const s = summarize(list);
-      $('#saldo').textContent = formatBRL(s.saldo);
-      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
-      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
-
-      updateChart(list); 
-      // CHAMA O NOVO ALERTA DE RISCO
-      checkStockRisk();
-    }
-
-    // Inicializa o app
-    render();
-    renderStock();
-    renderTasks(); // NOVO: Inicializa a lista de tarefas
-
-    // Seta a data de hoje no campo de data por padrão
-    dateEl.value = new Date().toISOString().slice(0,10);
-  </script>
+    // Seta a data de hoje no campo de data por padrão
+    dateEl.value = new Date().toISOString().slice(0,10);
+  </script>
 </body>
 </html>

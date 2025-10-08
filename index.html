@@ -86,7 +86,7 @@
     .transactions-wrapper{
         margin-top: 16px; 
     }
-    /* Estilo para Alerta Proativo */
+    /* NOVO: Estilo para Alerta Proativo */
     .risk-alert-card {
         background-color: var(--danger);
         color: white;
@@ -633,6 +633,7 @@
 
         // 1. Coleta e soma as vendas dos últimos 30 dias por descrição (item)
         const dateLimit = moment().subtract(ANALYSIS_DAYS, 'days').startOf('day');
+        // Usaremos um mapa para rastrear a quantidade vendida de cada item (baseado na 'desc' da transação)
         const salesVolume = {};
         let hasSales = false;
 
@@ -641,20 +642,13 @@
             if (t.type === 'credit' && moment(t.date).isSameOrAfter(dateLimit)) {
                 hasSales = true;
                 // Usa a descrição (nome do produto) como identificador de item vendido. 
-                // Aumenta a contagem de "vendas" para aquela descrição.
                 const itemKey = t.desc.trim().toLowerCase(); 
-                salesVolume[itemKey] = (salesVolume[itemKey] || 0) + 1; // Contabiliza a venda (1 unidade)
+                // Assumimos que cada transação de 'Receita' representa a venda de UMA UNIDADE do item para simplificar o cálculo.
+                // Em um sistema real, essa lógica precisaria ser mais robusta (ex: transações de venda com múltiplos itens).
+                salesVolume[itemKey] = (salesVolume[itemKey] || 0) + 1; 
             }
         });
 
-        // Se não há vendas recentes, não há como prever o risco.
-        if (!hasSales) {
-            // Se o estoque estiver visível (não for uma versão Premium), pode-se adicionar uma mensagem informativa
-            // alertsContainer.innerHTML = '<p class="help">Sem dados de vendas recentes para análise de risco de estoque.</p>';
-            return;
-        }
-
-        let alertCount = 0;
 
         // 2. Compara com o estoque atual e calcula a previsão de esgotamento
         stockList.forEach(item => {
@@ -665,18 +659,17 @@
             const avgDailySales = totalSales / ANALYSIS_DAYS;
             const currentQty = item.quantity;
 
-            // Se a venda diária for maior que zero e a quantidade atual for menor ou igual às vendas dos próximos 7 dias
+            // Se a venda diária for maior que zero e a quantidade atual for menor que o limite de risco (7 dias de venda)
             if (avgDailySales > 0 && currentQty > 0) {
                 const daysRemaining = currentQty / avgDailySales;
                 
                 if (daysRemaining <= ALERT_LIMIT_DAYS) {
-                    alertCount++;
-                    const days = Math.floor(daysRemaining);
+                    const days = Math.max(0, Math.floor(daysRemaining)); // Garante que não mostre dias negativos
+                    
                     const alertMessage = `
                         <div class="risk-alert-card">
-                            <strong>⚠️ Alerta de Risco: ${escapeHtml(item.name)} (${escapeHtml(item.code)})</strong>
-                            Com a taxa de vendas atual, o estoque deve esgotar em **${days <= 0 ? 'menos de 1' : days} dia(s)**.
-                            (Vendas médias: ${avgDailySales.toFixed(1)} por dia).
+                            <strong>⚠️ Risco de Estoque: ${escapeHtml(item.name)} (${escapeHtml(item.code)})</strong>
+                            Com a taxa de vendas atual (${avgDailySales.toFixed(1)}/dia), o estoque deve esgotar em **${days <= 0 ? 'menos de 1' : days} dia(s)**. **Aja rapidamente!**
                         </div>
                     `;
                     alertsContainer.innerHTML += alertMessage;
@@ -684,9 +677,12 @@
             }
         });
 
-        if (alertCount === 0 && hasSales) {
-            // Se houver vendas mas nenhum alerta
-            alertsContainer.innerHTML = '<p class="help" style="color:var(--success); font-weight:600">✅ Estoque sob controle! Nenhuma previsão de esgotamento iminente.</p>';
+        // Adiciona uma mensagem de controle se não houver alertas e se houver dados para análise
+        if (!alertsContainer.innerHTML.trim() && hasSales && stockList.length > 0) {
+            alertsContainer.innerHTML = '<p class="help" style="color:var(--success); font-weight:600">✅ Estoque sob controle! Nenhuma previsão de esgotamento iminente nos próximos 7 dias.</p>';
+        }
+        if (stockList.length === 0) {
+             alertsContainer.innerHTML = '<p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>';
         }
     }
     // ------------------------------------

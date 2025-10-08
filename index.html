@@ -1,850 +1,759 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Katalis — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas e gestão de estoque para pequenas empresas" />
-  
-
-  <link rel="shortcut icon" href="main/imagens/katalis.png" type="image/png">
-  
-  <style>
-    :root{
-      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
-      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
-      --danger:#dc2626; 
-      --success:#16a34a; /* VERDE de Receita/Sucesso */
-      --radius:12px; --gap:16px; --maxw:1100px;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      color-scheme: light;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
-      -webkit-font-smoothing:antialiased; -moz-osx-smoothing:grayscale;
-    }
-    .container{width:100%; max-width:var(--maxw)}
-
-    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
-    .logo{display:flex; align-items:center; gap:12px}
-    .brand{font-weight:700; font-size:20px}
-    .subtitle{color:var(--muted); font-size:13px}
-
-    /* ESTILOS DAS ABAS (TABS) - MANTIDOS */
-    .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
-    .tabs-nav{display:flex; gap:20px;}
-    .tab-link{
-      padding: 10px 0;
-      color: var(--muted);
-      font-weight: 500;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      transition: color 0.2s;
-    }
-    .tab-link:hover{
-        color: var(--accent);
-    }
-    .tab-link.active{
-        color: var(--accent);
-        border-bottom-color: var(--success); /* Use a cor verde da marca */
-        font-weight: 700;
-    }
-    .tab-content{
-        padding-top: 10px; /* Espaço entre as abas e o conteúdo */
-    }
-
-    /* Conteúdo do Dashboard e Estoque */
-    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
-    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
-
-    /* Dashboard */
-    .balances{display:flex; gap:12px; margin-bottom:16px}
-    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
-        display: flex; flex-direction: column; justify-content: center; 
-    }
-    .bal-title{font-size:12px; color:var(--muted)}
-    .bal-value{font-weight:700; font-size:20px}
-    
-    /* Correção de Altura do Gráfico: Solução Definitiva */
-    .chart-wrapper{
-      height: 240px; 
-      margin-left: -18px;
-      margin-right: -18px;
-      padding: 0 18px 18px 18px; 
-      margin-bottom: 20px; 
-      display: flex;
-      flex-direction: column;
-    }
-    #summaryChart{
-      height: 100% !important; 
-      width: 100% !important;
-    }
-
-    /* Transações Isoladas */
-    .transactions-wrapper{
-        margin-top: 16px; 
-    }
-    /* NOVO: Estilo para Alerta Proativo */
-    .risk-alert-card {
-        background-color: var(--danger);
-        color: white;
-        margin-bottom: 8px;
-        padding: 10px;
-        border-radius: 8px;
-        font-size: 14px;
-        line-height: 1.4;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Katalis — Gerenciador Financeiro Simples</title>
+  <meta name="description" content="Katalis: controle de receitas, despesas e gestão de estoque para pequenas empresas" />
+  
+  <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon-48x48.png" sizes="48x48" type="image/png">
+  <link rel="icon" href="images/favicons/katalis-favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="images/favicons/katalis-apple-touch-icon.png">
+  <link rel="manifest" href="images/favicons/site.webmanifest">
+  
+  <style>
+    :root{
+      --bg:#f7fafc; --card:#ffffff; --muted:#6b7280; 
+      --accent:#1d1d1d; /* COR PRINCIPAL (Preto) */
+      --danger:#dc2626; 
+      --success:#16a34a; /* VERDE de Receita/Sucesso */
+      --radius:12px; --gap:16px; --maxw:1100px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color-scheme: light;
     }
-    .risk-alert-card strong {
-        display: block;
-        margin-bottom: 4px;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:linear-gradient(180deg,var(--bg),#eef2f7); padding:32px; display:flex; justify-content:center; font-size:16px;
+      -webkit-font-smoothing:antialiased; -moz-osx-smoothing:grayscale;
     }
-    /* Form */
-    label{display:block; font-size:13px; margin-bottom:8px}
-    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
-    }
-    .row{display:flex; gap:12px}
-    .row .col{flex:1}
-    .actions{display:flex; gap:10px; margin-top:10px}
-    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
-    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
-    button.danger{background:var(--danger)}
-    
-    /* Botão de Estoque (para visualmente ser diferente) */
-    .stock-action-btn{
-        background-color: var(--success);
-    }
-    .stock-action-btn:hover{
-        background-color: #118d3e; /* tom mais escuro do verde */
-    }
+    .container{width:100%; max-width:var(--maxw)}
 
-    /* Transactions & Stock Table */
-    table{width:100%; border-collapse:collapse; font-size:14px}
-    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
-    th{font-weight:600; font-size:13px; color:var(--muted)}
-    /* Receita em VERDE */
-    .amount{font-weight:700}
-    .credit{color:var(--success)} 
-    .debit{color:var(--danger)}
-    .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
-    .stock-total-value{font-weight: 700; color: var(--accent);} /* Novo estilo para valor total do estoque */
+    header{display:flex; align-items:center; gap:16px; margin-bottom:20px}
+    .logo{display:flex; align-items:center; gap:12px}
+    .brand{font-weight:700; font-size:20px}
+    .subtitle{color:var(--muted); font-size:13px}
 
-    /* Small screens */
-    @media (max-width:900px){
-      /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
-      .grid{grid-template-columns:1fr;}
-      .balances{
-          flex-direction:column; /* Saldos um abaixo do outro */
-          gap: 8px; /* Diminui o espaço entre os saldos */
-      }
-      .balance{
-          padding: 12px; /* Diminui o padding do saldo */
-      }
-      .chart-wrapper{
-          margin-left: 0;
-          margin-right: 0;
-          padding: 0 0 18px 0;
-      }
-      
-      /* ESTILOS DE TABELA RESPONSIVA: GERAL (APLICADO A #stockTable E #txTable) */
-      table:not(.responsive-table-ignore) {
-          border: 0; /* Remove bordas da tabela principal */
-          font-size: 15px;
-      }
-      table:not(.responsive-table-ignore) thead{
-          /* Oculta os cabeçalhos originais em mobile */
-          border: none;
-          clip: rect(0 0 0 0);
-          height: 1px;
-          margin: -1px;
-          overflow: hidden;
-          padding: 0;
-          position: absolute;
-          width: 1px;
-      }
-      table:not(.responsive-table-ignore) tr{
-          display: block; /* Cada linha vira um bloco (o cartão) */
-          margin-bottom: 12px;
-          border: 1px solid #eef2f6;
-          border-radius: var(--radius);
-          padding: 8px 12px;
-          box-shadow: 0 1px 4px rgba(2,6,23,0.04);
-      }
-      table:not(.responsive-table-ignore) tr:last-child {
-          margin-bottom: 0; 
-      }
-      table:not(.responsive-table-ignore) td{
-          display: block; /* Cada célula de dado vira uma linha separada */
-          border-bottom: 1px solid #eef2f6;
-          text-align: right;
-          padding: 6px 0;
-          
-      }
-      table:not(.responsive-table-ignore) td:last-child{
-          border-bottom: 0; 
-          text-align: left;
-          padding-top: 10px;
-      }
-      
-      /* Adiciona o rótulo da coluna (data-label) antes do dado */
-      table:not(.responsive-table-ignore) td::before{
-          content: attr(data-label);
-          float: left;
-          font-weight: bold;
-          color: var(--muted);
-          margin-right: 8px;
-      }
-      table:not(.responsive-table-ignore) td:last-child button {
-          width: 100%; /* Botão "Remover" fica em largura total */
-          /* Estilo padrão é o Danger do Estoque, mas será sobrescrito abaixo para o Dashboard */
-          background-color: var(--danger); 
-      }
-      
-      /* Remove o overflow:auto para as divs que continham as tabelas */
-      .transactions-wrapper > div[style*="overflow:auto"],
-      #stock-content div[style*="overflow:auto"]{
-          overflow: visible !important;
-          padding: 0 !important;
-          max-height: none !important; 
-      }
-      
-      /* Estilo Específico para o botão "Remover" da Transação */
-      #txTable td:last-child button {
-          background-color: var(--accent); 
-      }
-    }
+    /* ESTILOS DAS ABAS (TABS) - MANTIDOS */
+    .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
+    .tabs-nav{display:flex; gap:20px;}
+    .tab-link{
+      padding: 10px 0;
+      color: var(--muted);
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s;
+    }
+    .tab-link:hover{
+        color: var(--accent);
+    }
+    .tab-link.active{
+        color: var(--accent);
+        border-bottom-color: var(--success); /* Use a cor verde da marca */
+        font-weight: 700;
+    }
+    .tab-content{
+        padding-top: 10px; /* Espaço entre as abas e o conteúdo */
+    }
 
-    /* a11y focus */
-    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
+    /* Conteúdo do Dashboard e Estoque */
+    .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
+    .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
-    /* Help text */
-    .help{font-size:13px; color:var(--muted)}
-    .compact{font-size:13px}
-  </style>
+    /* Dashboard */
+    .balances{display:flex; gap:12px; margin-bottom:16px}
+    .balance{flex:1; padding:14px; border-radius:10px; background:linear-gradient(180deg,#ffffff,#fbfdfe); min-height:68px;
+        display: flex; flex-direction: column; justify-content: center; 
+    }
+    .bal-title{font-size:12px; color:var(--muted)}
+    .bal-value{font-weight:700; font-size:20px}
+    
+    /* Correção de Altura do Gráfico: Solução Definitiva */
+    .chart-wrapper{
+      height: 240px; 
+      margin-left: -18px;
+      margin-right: -18px;
+      padding: 0 18px 18px 18px; 
+      margin-bottom: 20px; 
+      display: flex;
+      flex-direction: column;
+    }
+    #summaryChart{
+      height: 100% !important; 
+      width: 100% !important;
+    }
+
+    /* Transações Isoladas */
+    .transactions-wrapper{
+        margin-top: 16px; 
+    }
+
+    /* Form */
+    label{display:block; font-size:13px; margin-bottom:8px}
+    input[type="text"], input[type="number"], select, textarea, input[type="date"]{
+      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ee; font-size:14px;
+    }
+    .row{display:flex; gap:12px}
+    .row .col{flex:1}
+    .actions{display:flex; gap:10px; margin-top:10px}
+    button{background:var(--accent); color:white; border:0; padding:10px 12px; border-radius:8px; cursor:pointer}
+    button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
+    button.danger{background:var(--danger)}
+    
+    /* Botão de Estoque (para visualmente ser diferente) */
+    .stock-action-btn{
+        background-color: var(--success);
+    }
+    .stock-action-btn:hover{
+        background-color: #118d3e; /* tom mais escuro do verde */
+    }
+
+    /* Transactions & Stock Table */
+    table{width:100%; border-collapse:collapse; font-size:14px}
+    th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
+    th{font-weight:600; font-size:13px; color:var(--muted)}
+    /* Receita em VERDE */
+    .amount{font-weight:700}
+    .credit{color:var(--success)} 
+    .debit{color:var(--danger)}
+    .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
+    .stock-total-value{font-weight: 700; color: var(--accent);} /* Novo estilo para valor total do estoque */
+
+    /* Small screens */
+    @media (max-width:900px){
+      /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
+      .grid{grid-template-columns:1fr;}
+      .balances{
+          flex-direction:column; /* Saldos um abaixo do outro */
+          gap: 8px; /* Diminui o espaço entre os saldos */
+      }
+      .balance{
+          padding: 12px; /* Diminui o padding do saldo */
+      }
+      .chart-wrapper{
+          margin-left: 0;
+          margin-right: 0;
+          padding: 0 0 18px 0;
+      }
+      
+      /* ESTILOS DE TABELA RESPONSIVA: GERAL (APLICADO A #stockTable E #txTable) */
+      table:not(.responsive-table-ignore) {
+          border: 0; /* Remove bordas da tabela principal */
+          font-size: 15px;
+      }
+      table:not(.responsive-table-ignore) thead{
+          /* Oculta os cabeçalhos originais em mobile */
+          border: none;
+          clip: rect(0 0 0 0);
+          height: 1px;
+          margin: -1px;
+          overflow: hidden;
+          padding: 0;
+          position: absolute;
+          width: 1px;
+      }
+      table:not(.responsive-table-ignore) tr{
+          display: block; /* Cada linha vira um bloco (o cartão) */
+          margin-bottom: 12px;
+          border: 1px solid #eef2f6;
+          border-radius: var(--radius);
+          padding: 8px 12px;
+          box-shadow: 0 1px 4px rgba(2,6,23,0.04);
+      }
+      table:not(.responsive-table-ignore) td{
+          display: block; /* Cada célula de dado vira uma linha separada */
+          border-bottom: 1px solid #eef2f6;
+          text-align: right;
+          padding: 6px 0;
+          
+      }
+      table:not(.responsive-table-ignore) tr:last-child {
+          margin-bottom: 0; 
+      }
+      table:not(.responsive-table-ignore) td:last-child{
+          border-bottom: 0; 
+          text-align: left;
+          padding-top: 10px;
+      }
+      
+      /* Adiciona o rótulo da coluna (data-label) antes do dado */
+      table:not(.responsive-table-ignore) td::before{
+          content: attr(data-label);
+          float: left;
+          font-weight: bold;
+          color: var(--muted);
+          margin-right: 8px;
+      }
+      table:not(.responsive-table-ignore) td:last-child button {
+          width: 100%; /* Botão "Remover" fica em largura total */
+          /* Estilo padrão é o Danger do Estoque, mas será sobrescrito abaixo para o Dashboard */
+          background-color: var(--danger); 
+      }
+      
+      /* Remove o overflow:auto para as divs que continham as tabelas */
+      .transactions-wrapper > div[style*="overflow:auto"],
+      #stock-content div[style*="overflow:auto"]{
+          overflow: visible !important;
+          padding: 0 !important;
+          max-height: none !important; 
+      }
+      
+      /* Estilo Específico para o botão "Remover" da Transação */
+      #txTable td:last-child button {
+          background-color: var(--accent); 
+      }
+    }
+
+    /* a11y focus */
+    :focus{outline:3px solid rgba(29, 29, 29, 0.18); outline-offset:2px}
+
+    /* Help text */
+    .help{font-size:13px; color:var(--muted)}
+    .compact{font-size:13px}
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true" focusable="false">
-            <rect width="44" height="44" rx="8" fill="#1d1d1d"/> 
-            <rect x="12" y="10" width="4" height="24" rx="2" fill="#fff" />
-            <path d="M19 14 L30 25 L19 36" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        </svg>
-        <div>
-          <div class="brand">Katalis</div> 
-          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
-        </div>
-      </div>
-      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
-        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
-        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
-      </div>
-    </header>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true" focusable="false">
+            <rect width="44" height="44" rx="8" fill="#1d1d1d"/> 
+            <rect x="12" y="10" width="4" height="24" rx="2" fill="#fff" />
+            <path d="M19 14 L30 25 L19 36" stroke="#16a34a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <div>
+          <div class="brand">Katalis</div> 
+          <div class="subtitle">Controle financeiro simples para pequenas empresas</div>
+        </div>
+      </div>
+      <div style="margin-left:auto; display:flex; align-items:center; gap:12px">
+        <button id="exportBtn" class="secondary" aria-label="Exportar dados">Exportar CSV</button>
+        <button id="helpBtn" class="secondary" aria-label="Ajuda">Ajuda</button>
+      </div>
+    </header>
 
-    <nav class="tabs" role="tablist">
-        <div class="tabs-nav">
-            <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
-                Dashboard
-            </a>
-            <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
-                Estoque
-            </a>
-        </div>
-    </nav>
+    <nav class="tabs" role="tablist">
+        <div class="tabs-nav">
+            <a class="tab-link active" id="tab-dashboard" data-tab-id="dashboard" role="tab" aria-controls="dashboard-content" aria-selected="true">
+                Dashboard
+            </a>
+            <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
+                Estoque
+            </a>
+        </div>
+    </nav>
 
-    <main class="tab-content" role="main">
-        <section id="dashboard-content" data-tab-content="dashboard" class="tab-pane">
-            <div class="grid">
-                <section class="card" aria-labelledby="dashboardTitle">
-                    
-                    <div id="stockRiskAlerts" style="margin-bottom: 20px;" aria-live="polite">
-                        <p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>
-                    </div>
-                                        <h2 id="dashboardTitle">Visão geral</h2>
-                    <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
+    <main class="tab-content" role="main">
+        <section id="dashboard-content" data-tab-content="dashboard" class="tab-pane">
+            <div class="grid">
+                <section class="card" aria-labelledby="dashboardTitle">
+                    <h2 id="dashboardTitle">Visão geral</h2>
+                    <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
 
-                    <div class="balances" style="margin-top:12px">
-                        <div class="balance" aria-live="polite">
-                            <div class="bal-title">Saldo</div>
-                            <div id="saldo" class="bal-value">R$ 0,00</div>
-                        </div>
-                        <div class="balance">
-                            <div class="bal-title">Receitas (últimos 30 dias)</div>
-                            <div id="receitas" class="bal-value">R$ 0,00</div>
-                        </div>
-                        <div class="balance">
-                            <div class="bal-title">Despesas (últimos 30 dias)</div>
-                            <div id="despesas" class="bal-value">R$ 0,00</div>
-                        </div>
-                    </div>
-
-                    <div class="chart-wrapper">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
-                            <h3 class="compact">Resumo financeiro</h3>
-                            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
-                                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                            </svg>
-                    </div>
-                        <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
-                    </div>
-
-                    <div class="transactions-wrapper">
-                        <h3 class="compact">Últimas transações</h3>
-                        <div style="overflow:auto; max-height:260px; margin-top:8px">
-                            <table id="txTable" aria-live="polite">
-                                <thead>
-                                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
-                                </thead>
-                                <tbody></tbody>
-                        </div>
-                </div>
-                </section>
-
-                <aside class="card" aria-labelledby="formTitle">
-                    <h2 id="formTitle">Adicionar transação</h2>
-                    <form id="txForm">
-                        <label for="type">Tipo</label>
-                        <select id="type" required aria-required="true">
-                            <option value="credit">Receita</option>
-                            <option value="debit">Despesa</option>
-                        </select>
-
-                        <label for="date">Data</label>
-                        <input type="date" id="date" required />
-
-                        <label for="desc">Descrição</label>
-                        <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
-
-                        <label for="category">Categoria</label>
-                        <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
-
-                        <label for="amount">Valor (R$)</label>
-                        <input type="number" id="amount" step="0.01" placeholder="0.00" required />
-
-                        <div class="actions">
-                            <button type="submit" aria-label="Salvar transação">Salvar</button>
-                            <button type="button" id="clearBtn" class="secondary">Limpar</button>
-                        </div>
-                    </form>
-
-                    <hr style="margin:14px 0" />
-
-                    <div>
-                        <h3 class="compact">Importante</h3>
-                        <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
-                        <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
-                    </div>
-                </aside>
-            </div>
-        </section>
-
-        <section id="stock-content" data-tab-content="stock" class="tab-pane" style="display:none;">
-            <div class="grid">
-                <section class="card" aria-labelledby="stockListTitle">
-                    <h2 id="stockListTitle">Itens em Estoque</h2>
-                    
-                    <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
-                    
-                    <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
-                    
-                    <div style="overflow:auto; margin-top:16px">
-                        <table id="stockTable" aria-live="polite">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Produto</th>
-                                    <th>Categoria</th>
-                                    <th>Qtde</th>
-                                    <th>Vlr Unitário</th>
-                                    <th>Vlr Total</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <aside class="card" aria-labelledby="stockFormTitle">
-                    <h2 id="stockFormTitle">Adicionar/Atualizar Item</h2>
-                    <form id="stockForm">
-                        <label for="stockCode">Código do Produto</label>
-                        <input type="text" id="stockCode" placeholder="Ex: A001" required />
-
-                        <label for="stockName">Nome do Produto</label>
-                        <input type="text" id="stockName" placeholder="Ex: Camiseta P" required />
-
-                        <label for="stockCategory">Categoria</label>
-                        <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
-
-                        <label for="stockPrice">Valor Unitário (R$)</label>
-                        <input type="number" id="stockPrice" step="0.01" min="0" placeholder="0.00" required />
-
-                        <label for="stockQuantity">Quantidade</label>
-                        <input type="number" id="stockQuantity" min="0" placeholder="0" required />
-
-                        <div class="actions">
-                            <button type="submit" class="stock-action-btn" aria-label="Salvar item">Salvar Item</button>
-                            <button type="button" id="clearStockBtn" class="secondary">Limpar</button>
-                        </div>
-                    </form>
-
-                    <hr style="margin:14px 0" />
-
-                    <div>
-                        <h3 class="compact">Dicas</h3>
-                        <p class="help">Use um código único para cada produto. Mantenha a quantidade atualizada para um controle preciso.</p>
-                        <p class="help" style="margin-top:8px">Produtos com quantidade **menor que 5** serão destacados em vermelho.</p>
-                    </div>
-                </aside>
-            </div>
-        </section>
-    </main>
-    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
-      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-          <h3>Ajuda — Como usar</h3>
-          <button id="closeHelp" class="secondary">Fechar</button>
-        </div>
-        <div style="margin-top:8px">
-          <ol>
-            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
-            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
-            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
-          </ol>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
-  <script>
-    moment.locale('pt-br'); 
-    
-    // --- Utilitários ---
-    const $ = selector => document.querySelector(selector);
-    const qs = selector => document.querySelectorAll(selector);
-
-    // FINANCEIRO
-    const txForm = $('#txForm');
-    const typeEl = $('#type');
-    const dateEl = $('#date');
-    const descEl = $('#desc');
-    const catEl = $('#category');
-    const amountEl = $('#amount');
-    const txTableBody = $('#txTable tbody');
-    const SALTO_KEY = 'drivor_tx_v1';
-
-    // ESTOQUE
-    const stockForm = $('#stockForm');
-    const stockCodeEl = $('#stockCode');
-    const stockNameEl = $('#stockName');
-    const stockCategoryEl = $('#stockCategory');
-    const stockPriceEl = $('#stockPrice'); 
-    const stockQuantityEl = $('#stockQuantity');
-    const stockTableBody = $('#stockTable tbody');
-    const stockFilterEl = $('#stockFilter'); 
-    const STOCK_KEY = 'katalis_stock_v1'; 
-
-    // ------------------------------------
-    // LÓGICA DE ESTOQUE (CRUD + FILTRO)
-    // ------------------------------------
-
-    function loadStock(){
-        try{
-            const raw = localStorage.getItem(STOCK_KEY);
-            return raw ? JSON.parse(raw) : [];
-        }catch(e){
-            console.error('Erro ao carregar estoque', e);
-            return [];
-        }
-    }
-    function saveStock(list){
-        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
-    }
-
-    stockForm.addEventListener('submit', (ev)=>{
-        ev.preventDefault();
-        const itemCode = stockCodeEl.value.trim().toUpperCase();
-        const itemName = stockNameEl.value.trim();
-        const itemCat = stockCategoryEl.value.trim() || 'Geral';
-        const itemPrice = Number(stockPriceEl.value) || 0; 
-        const itemQty = Number(stockQuantityEl.value) || 0;
-        
-        const list = loadStock();
-        const existingIndex = list.findIndex(item => item.code === itemCode);
-
-        const newItem = {
-            code: itemCode,
-            name: itemName,
-            category: itemCat,
-            price: itemPrice, 
-            quantity: itemQty
-        };
-
-        if(existingIndex > -1){
-            // Atualiza item existente
-            list[existingIndex] = newItem;
-        } else {
-            // Adiciona novo item
-            list.push(newItem);
-        }
-
-        saveStock(list);
-        stockForm.reset();
-        renderStock();
-        stockCodeEl.focus();
-        // Atualiza alertas após mudar estoque
-        checkStockRisk();
-    });
-
-    $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
-
-    function removeItem(code){
-        const list = loadStock().filter(t => t.code !== code);
-        saveStock(list);
-        renderStock();
-        // Atualiza alertas após remover estoque
-        checkStockRisk();
-    }
-
-    // Função de filtragem em tempo real
-    stockFilterEl.addEventListener('input', renderStock);
-
-    function renderStock(){
-        const filterText = stockFilterEl.value.toLowerCase();
-        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
-
-        // Aplica o filtro
-        if (filterText) {
-            list = list.filter(item => 
-                item.code.toLowerCase().includes(filterText) ||
-                item.name.toLowerCase().includes(filterText) ||
-                item.category.toLowerCase().includes(filterText)
-            );
-        }
-
-        stockTableBody.innerHTML = '';
-
-        for(const item of list){
-            const isLowStock = item.quantity < 5;
-            const quantityClass = isLowStock ? 'low-stock' : '';
-            const totalValue = item.price * item.quantity; 
-
-            const tr = document.createElement('tr');
-            // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
-            tr.innerHTML = `
-                <td data-label="Cód:">${escapeHtml(item.code)}</td>
-                <td data-label="Produto:">${escapeHtml(item.name)}</td>
-                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
-                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
-                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
-                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
-                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
-            `;
-            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
-            stockTableBody.appendChild(tr);
-        }
-    }
-
-    // ------------------------------------
-    // LÓGICA DE FINANÇAS (MANTIDA E ATUALIZADA)
-    // ------------------------------------
-
-    function loadTx(){
-      try{
-        const raw = localStorage.getItem(SALTO_KEY);
-        return raw ? JSON.parse(raw) : [];
-      }catch(e){
-        console.error('Erro ao carregar dados financeiros', e);
-        return [];
-      }
-    }
-    function saveTx(list){
-      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
-    }
-
-    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
-
-    txForm.addEventListener('submit', (ev)=>{
-      ev.preventDefault();
-      const tx = {
-        id: Date.now(),
-        type: typeEl.value,
-        date: dateEl.value || new Date().toISOString().slice(0,10),
-        desc: descEl.value.trim() || '(sem descrição)',
-        category: catEl.value.trim() || 'Outros',
-        amount: Number(amountEl.value) || 0
-      };
-      const list = loadTx();
-      list.push(tx);
-      saveTx(list);
-      txForm.reset();
-      render();
-      typeEl.focus();
-    });
-
-    function removeTx(id){
-      const list = loadTx().filter(t => t.id !== id);
-      saveTx(list);
-      render();
-    }
-
-    function formatBRL(v){
-      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-    }
-
-    function summarize(list){
-      let saldo = 0, receitas = 0, despesas = 0;
-      const last30 = new Date(); last30.setDate(last30.getDate()-30);
-      let receitas30 = 0, despesas30 = 0;
-      list.forEach(t => {
-        if(t.type === 'credit'){
-          saldo += t.amount; receitas += t.amount;
-          if(new Date(t.date) >= last30) receitas30 += t.amount;
-        }else{
-          saldo -= t.amount; despesas += t.amount;
-          if(new Date(t.date) >= last30) despesas30 += t.amount;
-        }
-      });
-      return {saldo, receitas, despesas, receitas30, despesas30};
-    }
-
-    // ------------------------------------
-    // LÓGICA DE ALERTA DE RISCO DE ESTOQUE (PROATIVA)
-    // ------------------------------------
-
-    // Dias de análise de vendas e limite de dias para alerta
-    const ANALYSIS_DAYS = 30;
-    const ALERT_LIMIT_DAYS = 7; // Alerta se for esgotar em até 7 dias
-
-    function checkStockRisk() {
-        const allTx = loadTx();
-        const stockList = loadStock();
-        const alertsContainer = $('#stockRiskAlerts');
-        alertsContainer.innerHTML = ''; // Limpa alertas anteriores
-
-        // 1. Coleta e soma as vendas dos últimos 30 dias por descrição (item)
-        const dateLimit = moment().subtract(ANALYSIS_DAYS, 'days').startOf('day');
-        // Usaremos um mapa para rastrear a quantidade vendida de cada item (baseado na 'desc' da transação)
-        const salesVolume = {};
-        let hasSales = false;
-
-        allTx.forEach(t => {
-            // Assume que uma RECEITA (credit) é uma venda de produto para a análise de risco.
-            if (t.type === 'credit' && moment(t.date).isSameOrAfter(dateLimit)) {
-                hasSales = true;
-                // Usa a descrição (nome do produto) como identificador de item vendido. 
-                const itemKey = t.desc.trim().toLowerCase(); 
-                // Assumimos que cada transação de 'Receita' representa a venda de UMA UNIDADE do item para simplificar o cálculo.
-                // Em um sistema real, essa lógica precisaria ser mais robusta (ex: transações de venda com múltiplos itens).
-                salesVolume[itemKey] = (salesVolume[itemKey] || 0) + 1; 
-            }
-        });
-
-
-        // 2. Compara com o estoque atual e calcula a previsão de esgotamento
-        stockList.forEach(item => {
-            const itemKey = item.name.trim().toLowerCase(); // Correlaciona pelo Nome do Produto
-            
-            // Volume de vendas total do item nos últimos 30 dias
-            const totalSales = salesVolume[itemKey] || 0;
-            const avgDailySales = totalSales / ANALYSIS_DAYS;
-            const currentQty = item.quantity;
-
-            // Se a venda diária for maior que zero e a quantidade atual for menor que o limite de risco (7 dias de venda)
-            if (avgDailySales > 0 && currentQty > 0) {
-                const daysRemaining = currentQty / avgDailySales;
-                
-                if (daysRemaining <= ALERT_LIMIT_DAYS) {
-                    const days = Math.max(0, Math.floor(daysRemaining)); // Garante que não mostre dias negativos
-                    
-                    const alertMessage = `
-                        <div class="risk-alert-card">
-                            <strong>⚠️ Risco de Estoque: ${escapeHtml(item.name)} (${escapeHtml(item.code)})</strong>
-                            Com a taxa de vendas atual (${avgDailySales.toFixed(1)}/dia), o estoque deve esgotar em **${days <= 0 ? 'menos de 1' : days} dia(s)**. **Aja rapidamente!**
+                    <div class="balances" style="margin-top:12px">
+                        <div class="balance" aria-live="polite">
+                            <div class="bal-title">Saldo</div>
+                            <div id="saldo" class="bal-value">R$ 0,00</div>
                         </div>
-                    `;
-                    alertsContainer.innerHTML += alertMessage;
-                }
-            }
-        });
+                        <div class="balance">
+                            <div class="bal-title">Receitas (últimos 30 dias)</div>
+                            <div id="receitas" class="bal-value">R$ 0,00</div>
+                        </div>
+                        <div class="balance">
+                            <div class="bal-title">Despesas (últimos 30 dias)</div>
+                            <div id="despesas" class="bal-value">R$ 0,00</div>
+                        </div>
+                    </div>
 
-        // Adiciona uma mensagem de controle se não houver alertas e se houver dados para análise
-        if (!alertsContainer.innerHTML.trim() && hasSales && stockList.length > 0) {
-            alertsContainer.innerHTML = '<p class="help" style="color:var(--success); font-weight:600">✅ Estoque sob controle! Nenhuma previsão de esgotamento iminente nos próximos 7 dias.</p>';
-        } else if (stockList.length === 0) {
-             alertsContainer.innerHTML = '<p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>';
-        } else if (stockList.length > 0 && !hasSales) {
-             alertsContainer.innerHTML = '<p class="help">A análise de risco está ativa, mas é necessário registrar **Receitas** para calcular a taxa de vendas.</p>';
+                    <div class="chart-wrapper">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding: 0 18px;">
+                            <h3 class="compact">Resumo financeiro</h3>
+                            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <rect width="24" height="24" rx="4" fill="#1d1d1d"></rect> 
+                                <path d="M6 14l3-3 2 2 6-6" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <canvas id="summaryChart" aria-label="Gráfico de receitas e despesas" role="img"></canvas>
+                    </div>
+
+                    <div class="transactions-wrapper">
+                        <h3 class="compact">Últimas transações</h3>
+                        <div style="overflow:auto; max-height:260px; margin-top:8px">
+                            <table id="txTable" aria-live="polite">
+                                <thead>
+                                    <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="card" aria-labelledby="formTitle">
+                    <h2 id="formTitle">Adicionar transação</h2>
+                    <form id="txForm">
+                        <label for="type">Tipo</label>
+                        <select id="type" required aria-required="true">
+                            <option value="credit">Receita</option>
+                            <option value="debit">Despesa</option>
+                        </select>
+
+                        <label for="date">Data</label>
+                        <input type="date" id="date" required />
+
+                        <label for="desc">Descrição</label>
+                        <input type="text" id="desc" placeholder="Ex: Venda, aluguel, compra de insumos" required />
+
+                        <label for="category">Categoria</label>
+                        <input type="text" id="category" placeholder="Ex: vendas, aluguel, suprimentos" />
+
+                        <label for="amount">Valor (R$)</label>
+                        <input type="number" id="amount" step="0.01" placeholder="0.00" required />
+
+                        <div class="actions">
+                            <button type="submit" aria-label="Salvar transação">Salvar</button>
+                            <button type="button" id="clearBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Importante</h3>
+                        <p class="help">Use categorias simples e descreva as transações claramente. Para exportar os dados, clique em "Exportar CSV".</p>
+                        <p class="help" style="margin-top:8px">Os dados ficam apenas no seu navegador. Para backup, exporte o CSV regularmente.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="stock-content" data-tab-content="stock" class="tab-pane" style="display:none;">
+            <div class="grid">
+                <section class="card" aria-labelledby="stockListTitle">
+                    <h2 id="stockListTitle">Itens em Estoque</h2>
+                    
+                    <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
+                    
+                    <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
+                    
+                    <div style="overflow:auto; margin-top:16px">
+                        <table id="stockTable" aria-live="polite">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Qtde</th>
+                                    <th>Vlr Unitário</th>
+                                    <th>Vlr Total</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="card" aria-labelledby="stockFormTitle">
+                    <h2 id="stockFormTitle">Adicionar/Atualizar Item</h2>
+                    <form id="stockForm">
+                        <label for="stockCode">Código do Produto</label>
+                        <input type="text" id="stockCode" placeholder="Ex: A001" required />
+
+                        <label for="stockName">Nome do Produto</label>
+                        <input type="text" id="stockName" placeholder="Ex: Camiseta P" required />
+
+                        <label for="stockCategory">Categoria</label>
+                        <input type="text" id="stockCategory" placeholder="Ex: Roupas, Eletrônicos, Serviços" />
+
+                        <label for="stockPrice">Valor Unitário (R$)</label>
+                        <input type="number" id="stockPrice" step="0.01" min="0" placeholder="0.00" required />
+
+                        <label for="stockQuantity">Quantidade</label>
+                        <input type="number" id="stockQuantity" min="0" placeholder="0" required />
+
+                        <div class="actions">
+                            <button type="submit" class="stock-action-btn" aria-label="Salvar item">Salvar Item</button>
+                            <button type="button" id="clearStockBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Dicas</h3>
+                        <p class="help">Use um código único para cada produto. Mantenha a quantidade atualizada para um controle preciso.</p>
+                        <p class="help" style="margin-top:8px">Produtos com quantidade **menor que 5** serão destacados em vermelho.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+    <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
+      <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+        <div style="display:flex; justify-content:space-between; align-items:center">
+          <h3>Ajuda — Como usar</h3>
+          <button id="closeHelp" class="secondary">Fechar</button>
+        </div>
+        <div style="margin-top:8px">
+          <ol>
+            <li>Adicione <strong>Receita</strong> ou <strong>Despesa</strong> com data, descrição e valor.</li>
+            <li>O saldo é calculado automaticamente. Use categorias para filtrar em futuras versões.</li>
+            <li>Exportar CSV salva um arquivo que pode ser aberto no Excel ou Google Sheets.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@1.0.0/dist/chartjs-adapter-moment.min.js"></script>
+  <script>
+    moment.locale('pt-br'); 
+    
+    // --- Utilitários ---
+    const $ = selector => document.querySelector(selector);
+    const qs = selector => document.querySelectorAll(selector);
+
+    // FINANCEIRO
+    const txForm = $('#txForm');
+    const typeEl = $('#type');
+    const dateEl = $('#date');
+    const descEl = $('#desc');
+    const catEl = $('#category');
+    const amountEl = $('#amount');
+    const txTableBody = $('#txTable tbody');
+    const SALTO_KEY = 'drivor_tx_v1';
+
+    // ESTOQUE
+    const stockForm = $('#stockForm');
+    const stockCodeEl = $('#stockCode');
+    const stockNameEl = $('#stockName');
+    const stockCategoryEl = $('#stockCategory');
+    const stockPriceEl = $('#stockPrice'); 
+    const stockQuantityEl = $('#stockQuantity');
+    const stockTableBody = $('#stockTable tbody');
+    const stockFilterEl = $('#stockFilter'); 
+    const STOCK_KEY = 'katalis_stock_v1'; 
+
+    // ------------------------------------
+    // LÓGICA DE ESTOQUE (CRUD + FILTRO)
+    // ------------------------------------
+
+    function loadStock(){
+        try{
+            const raw = localStorage.getItem(STOCK_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar estoque', e);
+            return [];
         }
     }
+    function saveStock(list){
+        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    }
+
+    stockForm.addEventListener('submit', (ev)=>{
+        ev.preventDefault();
+        const itemCode = stockCodeEl.value.trim().toUpperCase();
+        const itemName = stockNameEl.value.trim();
+        const itemCat = stockCategoryEl.value.trim() || 'Geral';
+        const itemPrice = Number(stockPriceEl.value) || 0; 
+        const itemQty = Number(stockQuantityEl.value) || 0;
+        
+        const list = loadStock();
+        const existingIndex = list.findIndex(item => item.code === itemCode);
+
+        const newItem = {
+            code: itemCode,
+            name: itemName,
+            category: itemCat,
+            price: itemPrice, 
+            quantity: itemQty
+        };
+
+        if(existingIndex > -1){
+            // Atualiza item existente
+            list[existingIndex] = newItem;
+        } else {
+            // Adiciona novo item
+            list.push(newItem);
+        }
+
+        saveStock(list);
+        stockForm.reset();
+        renderStock();
+        stockCodeEl.focus();
+    });
+
+    $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
+
+    function removeItem(code){
+        const list = loadStock().filter(t => t.code !== code);
+        saveStock(list);
+        renderStock();
+    }
+
+    // Função de filtragem em tempo real
+    stockFilterEl.addEventListener('input', renderStock);
+
+    function renderStock(){
+        const filterText = stockFilterEl.value.toLowerCase();
+        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+
+        // Aplica o filtro
+        if (filterText) {
+            list = list.filter(item => 
+                item.code.toLowerCase().includes(filterText) ||
+                item.name.toLowerCase().includes(filterText) ||
+                item.category.toLowerCase().includes(filterText)
+            );
+        }
+
+        stockTableBody.innerHTML = '';
+
+        for(const item of list){
+            const isLowStock = item.quantity < 5;
+            const quantityClass = isLowStock ? 'low-stock' : '';
+            const totalValue = item.price * item.quantity; 
+
+            const tr = document.createElement('tr');
+            // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
+            tr.innerHTML = `
+                <td data-label="Cód:">${escapeHtml(item.code)}</td>
+                <td data-label="Produto:">${escapeHtml(item.name)}</td>
+                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
+                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
+                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
+                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
+                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+            `;
+            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
+            stockTableBody.appendChild(tr);
+        }
+    }
+
     // ------------------------------------
-    // FIM NOVO
+    // LÓGICA DE FINANÇAS (MANTIDA E ATUALIZADA)
     // ------------------------------------
 
-    function escapeHtml(str){
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+    function loadTx(){
+      try{
+        const raw = localStorage.getItem(SALTO_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        console.error('Erro ao carregar dados financeiros', e);
+        return [];
+      }
+    }
+    function saveTx(list){
+      localStorage.setItem(SALTO_KEY, JSON.stringify(list));
+    }
 
-    $('#exportBtn').addEventListener('click', ()=>{
-      const list = loadTx();
-      if(!list.length){ alert('Não há dados para exportar.'); return; }
-      const header = ['id','date','type','description','category','amount'];
-      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
-      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
-      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; 
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    });
+    $('#clearBtn').addEventListener('click', ()=> txForm.reset());
 
-    const helpModal = $('#helpModal');
-    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
-    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
-    function showHelp(show){
-      helpModal.style.display = show ? 'flex' : 'none';
-      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
-    }
+    txForm.addEventListener('submit', (ev)=>{
+      ev.preventDefault();
+      const tx = {
+        id: Date.now(),
+        type: typeEl.value,
+        date: dateEl.value || new Date().toISOString().slice(0,10),
+        desc: descEl.value.trim() || '(sem descrição)',
+        category: catEl.value.trim() || 'Outros',
+        amount: Number(amountEl.value) || 0
+      };
+      const list = loadTx();
+      list.push(tx);
+      saveTx(list);
+      txForm.reset();
+      render();
+      typeEl.focus();
+    });
 
-    // --- LÓGICA DAS ABAS (TABS) ---
-    const tabLinks = qs('.tab-link');
-    const tabPanes = qs('.tab-pane');
+    function removeTx(id){
+      const list = loadTx().filter(t => t.id !== id);
+      saveTx(list);
+      render();
+    }
 
-    tabLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const targetId = e.target.getAttribute('data-tab-id');
-            
-            // Remove 'active' de todos os links e oculta todos os conteúdos
-            tabLinks.forEach(l => {
-                l.classList.remove('active');
-                l.setAttribute('aria-selected', 'false');
-            });
-            tabPanes.forEach(p => {
-                p.style.display = 'none';
-            });
+    function formatBRL(v){
+      return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    }
 
-            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
-            e.target.classList.add('active');
-            e.target.setAttribute('aria-selected', 'true');
-            $(`#${targetId}-content`).style.display = 'block';
-            
-            // Renderiza o conteúdo correto ao mudar de aba
-            if (targetId === 'dashboard') {
-                render(); 
-                if(chart) chart.resize();
-            } else if (targetId === 'stock') {
-                renderStock();
-            }
-        });
-    });
-    // --- FIM DA LÓGICA DAS ABAS ---
+    function summarize(list){
+      let saldo = 0, receitas = 0, despesas = 0;
+      const last30 = new Date(); last30.setDate(last30.getDate()-30);
+      let receitas30 = 0, despesas30 = 0;
+      list.forEach(t => {
+        if(t.type === 'credit'){
+          saldo += t.amount; receitas += t.amount;
+          if(new Date(t.date) >= last30) receitas30 += t.amount;
+        }else{
+          saldo -= t.amount; despesas += t.amount;
+          if(new Date(t.date) >= last30) despesas30 += t.amount;
+        }
+      });
+      return {saldo, receitas, despesas, receitas30, despesas30};
+    }
 
-    // --- Chart support ---
-    let chart = null;
+    function escapeHtml(str){
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
-    // Função de atualização simplificada para focar APENAS no gráfico de pizza
-    function updateChart(list){
-      const days = 30;
-      let totalCredits = 0;
-      let totalDebits = 0;
+    $('#exportBtn').addEventListener('click', ()=>{
+      const list = loadTx();
+      if(!list.length){ alert('Não há dados para exportar.'); return; }
+      const header = ['id','date','type','description','category','amount'];
+      const rows = list.map(r => [r.id, r.date, r.type, r.desc.replace(/\n/g,' '), r.category, r.amount]);
+      const csv = [header, ...rows].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `katalis-export-${new Date().toISOString().slice(0,10)}.csv`; 
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
 
-      const date30Days = new Date();
-      date30Days.setDate(date30Days.getDate() - days);
+    const helpModal = $('#helpModal');
+    $('#helpBtn').addEventListener('click', ()=> showHelp(true));
+    $('#closeHelp').addEventListener('click', ()=> showHelp(false));
+    function showHelp(show){
+      helpModal.style.display = show ? 'flex' : 'none';
+      helpModal.setAttribute('aria-hidden', show ? 'false' : 'true');
+    }
 
-      list.forEach(t => {
-        if (new Date(t.date) >= date30Days) {
-            if(t.type === 'credit') totalCredits += t.amount;
-            else totalDebits += t.amount;
-        }
-      });
+    // --- LÓGICA DAS ABAS (TABS) ---
+    const tabLinks = qs('.tab-link');
+    const tabPanes = qs('.tab-pane');
 
-      const ctx = document.getElementById('summaryChart').getContext('2d');
-      if(chart) chart.destroy(); 
+    tabLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const targetId = e.target.getAttribute('data-tab-id');
+            
+            // Remove 'active' de todos os links e oculta todos os conteúdos
+            tabLinks.forEach(l => {
+                l.classList.remove('active');
+                l.setAttribute('aria-selected', 'false');
+            });
+            tabPanes.forEach(p => {
+                p.style.display = 'none';
+            });
 
-      let chartConfig = {
-        type: 'pie', 
-        data: {
-            labels: ['Receitas', 'Despesas'],
-            datasets: [{
-                data: [totalCredits, totalDebits],
-                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
-                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
-            }]
-        },
-        options: {
-          responsive:true, 
-          maintainAspectRatio:false, 
-          plugins:{
-            legend:{position:'bottom'},
-            tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    let label = context.label || '';
-                    if (label) {
-                      label += ': ';
-                    }
-                    if (context.parsed !== null) {
-                      label += formatBRL(context.parsed);
-                    }
-                    return label;
-                  }
-                }
-            }
-          },
-          scales: {}
-        }
-      };
+            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
+            e.target.classList.add('active');
+            e.target.setAttribute('aria-selected', 'true');
+            $(`#${targetId}-content`).style.display = 'block';
+            
+            // Renderiza o conteúdo correto ao mudar de aba
+            if (targetId === 'dashboard') {
+                render(); 
+                if(chart) chart.resize();
+            } else if (targetId === 'stock') {
+                renderStock();
+            }
+        });
+    });
+    // --- FIM DA LÓGICA DAS ABAS ---
 
-      chart = new Chart(ctx, chartConfig);
-    }
+    // --- Chart support ---
+    let chart = null;
 
-    function render(){
-      const list = loadTx().sort((a,b)=> b.id - a.id);
-      txTableBody.innerHTML = '';
-      for(const t of list){
-        const tr = document.createElement('tr');
-        // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
-        tr.innerHTML = `
-          <td data-label="Data:">${t.date}</td>
-          <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
-          <td data-label="Cat.:">${escapeHtml(t.category)}</td>
-          <td data-label="Valor:" class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
-          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
-        `;
-        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
-        txTableBody.appendChild(tr);
-      }
+    // Função de atualização simplificada para focar APENAS no gráfico de pizza
+    function updateChart(list){
+      const days = 30;
+      let totalCredits = 0;
+      let totalDebits = 0;
 
-      const s = summarize(list);
-      $('#saldo').textContent = formatBRL(s.saldo);
-      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
-      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
+      const date30Days = new Date();
+      date30Days.setDate(date30Days.getDate() - days);
 
-      updateChart(list); 
-      // CHAMA O NOVO ALERTA DE RISCO
-      checkStockRisk();
-    }
+      list.forEach(t => {
+        if (new Date(t.date) >= date30Days) {
+            if(t.type === 'credit') totalCredits += t.amount;
+            else totalDebits += t.amount;
+        }
+      });
 
-    // Inicializa o app
-    render();
-    renderStock();
+      const ctx = document.getElementById('summaryChart').getContext('2d');
+      if(chart) chart.destroy(); 
 
-    // Seta a data de hoje no campo de data por padrão
-    dateEl.value = new Date().toISOString().slice(0,10);
-  </script>
+      let chartConfig = {
+        type: 'pie', 
+        data: {
+            labels: ['Receitas', 'Despesas'],
+            datasets: [{
+                data: [totalCredits, totalDebits],
+                backgroundColor: ['rgba(22, 163, 74, 0.9)', 'rgba(220,38,38,0.8)'], 
+                borderColor: ['#16a34a', 'rgba(220,38,38,1)']
+            }]
+        },
+        options: {
+          responsive:true, 
+          maintainAspectRatio:false, 
+          plugins:{
+            legend:{position:'bottom'},
+            tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    let label = context.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                      label += formatBRL(context.parsed);
+                    }
+                    return label;
+                  }
+                }
+            }
+          },
+          scales: {}
+        }
+      };
+
+      chart = new Chart(ctx, chartConfig);
+    }
+
+    function render(){
+      const list = loadTx().sort((a,b)=> b.id - a.id);
+      txTableBody.innerHTML = '';
+      for(const t of list){
+        const tr = document.createElement('tr');
+        // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
+        tr.innerHTML = `
+          <td data-label="Data:">${t.date}</td>
+          <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
+          <td data-label="Cat.:">${escapeHtml(t.category)}</td>
+          <td data-label="Valor:" class="amount ${t.type==='credit'? 'credit':'debit'}">${t.type==='credit'?'+ ':'- '}${formatBRL(t.amount)}</td>
+          <td><button data-id="${t.id}" aria-label="Remover transação">Remover</button></td>
+        `;
+        tr.querySelector('button').addEventListener('click', ()=> removeTx(t.id));
+        txTableBody.appendChild(tr);
+      }
+
+      const s = summarize(list);
+      $('#saldo').textContent = formatBRL(s.saldo);
+      $('#receitas').textContent = formatBRL(s.receitas30 || 0);
+      $('#despesas').textContent = formatBRL(s.despesas30 || 0);
+
+      updateChart(list); 
+    }
+
+    // Inicializa o app
+    render();
+    renderStock();
+
+    // Seta a data de hoje no campo de data por padrão
+    dateEl.value = new Date().toISOString().slice(0,10);
+  </script>
 </body>
 </html>

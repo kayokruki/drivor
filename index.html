@@ -172,15 +172,15 @@
           padding: 8px 12px;
           box-shadow: 0 1px 4px rgba(2,6,23,0.04);
       }
+      table:not(.responsive-table-ignore) tr:last-child {
+          margin-bottom: 0; 
+      }
       table:not(.responsive-table-ignore) td{
           display: block; /* Cada célula de dado vira uma linha separada */
           border-bottom: 1px solid #eef2f6;
           text-align: right;
           padding: 6px 0;
           
-      }
-      table:not(.responsive-table-ignore) tr:last-child {
-          margin-bottom: 0; 
       }
       table:not(.responsive-table-ignore) td:last-child{
           border-bottom: 0; 
@@ -260,8 +260,9 @@
             <div class="grid">
                 <section class="card" aria-labelledby="dashboardTitle">
                     
-                    <div id="stockRiskAlerts" style="margin-bottom: 20px;" aria-live="assertive">
-                        </div>
+                    <div id="stockRiskAlerts" style="margin-bottom: 20px;" aria-live="polite">
+                        <p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>
+                    </div>
                                         <h2 id="dashboardTitle">Visão geral</h2>
                     <p class="help">Insira receitas e despesas pela direita. Os valores são guardados no navegador (localStorage).</p>
 
@@ -299,8 +300,7 @@
                                     <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th><th></th></tr>
                                 </thead>
                                 <tbody></tbody>
-                            </table>
-                    </div>
+                        </div>
                 </div>
                 </section>
 
@@ -618,7 +618,7 @@
     }
 
     // ------------------------------------
-    // NOVO: LÓGICA DE ALERTA DE RISCO DE ESTOQUE (PROATIVA)
+    // LÓGICA DE ALERTA DE RISCO DE ESTOQUE (PROATIVA)
     // ------------------------------------
 
     // Dias de análise de vendas e limite de dias para alerta
@@ -680,9 +680,10 @@
         // Adiciona uma mensagem de controle se não houver alertas e se houver dados para análise
         if (!alertsContainer.innerHTML.trim() && hasSales && stockList.length > 0) {
             alertsContainer.innerHTML = '<p class="help" style="color:var(--success); font-weight:600">✅ Estoque sob controle! Nenhuma previsão de esgotamento iminente nos próximos 7 dias.</p>';
-        }
-        if (stockList.length === 0) {
+        } else if (stockList.length === 0) {
              alertsContainer.innerHTML = '<p class="help">Adicione itens ao **Estoque** para ativar a análise proativa de risco.</p>';
+        } else if (stockList.length > 0 && !hasSales) {
+             alertsContainer.innerHTML = '<p class="help">A análise de risco está ativa, mas é necessário registrar **Receitas** para calcular a taxa de vendas.</p>';
         }
     }
     // ------------------------------------

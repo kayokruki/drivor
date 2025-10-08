@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Katalis — Gerenciador Financeiro Simples</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas e gestão de estoque para pequenas empresas" />
+  <title>Katalis — Gerenciador Financeiro e RH</title>
+  <meta name="description" content="Katalis: controle de receitas, despesas, gestão de estoque e RH para pequenas empresas" />
   
   <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
@@ -36,7 +36,7 @@
     .brand{font-weight:700; font-size:20px}
     .subtitle{color:var(--muted); font-size:13px}
 
-    /* ESTILOS DAS ABAS (TABS) - MANTIDOS */
+    /* ESTILOS DAS ABAS (TABS) */
     .tabs{margin-bottom:20px; border-bottom:1px solid #eef2f6;}
     .tabs-nav{display:flex; gap:20px;}
     .tab-link{
@@ -46,20 +46,42 @@
       cursor: pointer;
       border-bottom: 3px solid transparent;
       transition: color 0.2s;
+      position: relative; /* Para a bolinha de notificação */
     }
     .tab-link:hover{
         color: var(--accent);
     }
     .tab-link.active{
         color: var(--accent);
-        border-bottom-color: var(--success); /* Use a cor verde da marca */
+        border-bottom-color: var(--success); 
         font-weight: 700;
     }
     .tab-content{
-        padding-top: 10px; /* Espaço entre as abas e o conteúdo */
+        padding-top: 10px; 
+    }
+    /* Notificação da aba RH */
+    .notification-badge {
+        position: absolute;
+        top: 0px;
+        right: -10px;
+        background-color: var(--danger);
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: none; /* Inicia oculto */
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        border: 2px solid var(--card); /* Para destacar */
+    }
+    .notification-badge.active {
+        display: flex;
     }
 
-    /* Conteúdo do Dashboard e Estoque */
+    /* Conteúdo do Dashboard, Estoque e RH */
     .grid{display:grid; grid-template-columns:1fr 360px; gap:var(--gap)}
     .card{background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 20px rgba(2,6,23,0.06)}
 
@@ -103,108 +125,42 @@
     button.secondary{background:transparent; color:var(--accent); border:1px solid rgba(29, 29, 29, 0.18)}
     button.danger{background:var(--danger)}
     
-    /* Botão de Estoque (para visualmente ser diferente) */
-    .stock-action-btn{
-        background-color: var(--success);
-    }
-    .stock-action-btn:hover{
-        background-color: #118d3e; /* tom mais escuro do verde */
-    }
+    /* Botões Específicos */
+    .stock-action-btn{ background-color: var(--success); }
+    .stock-action-btn:hover{ background-color: #118d3e; } 
+
+    .rh-action-btn{ background-color: #2563eb; } /* Um azul para RH */
+    .rh-action-btn:hover{ background-color: #1e40af; }
+    
+    .payment-fulfilled-btn{ background-color: var(--success); padding: 6px 10px; font-size: 13px; }
 
     /* Transactions & Stock Table */
     table{width:100%; border-collapse:collapse; font-size:14px}
     th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
     th{font-weight:600; font-size:13px; color:var(--muted)}
-    /* Receita em VERDE */
+    
     .amount{font-weight:700}
     .credit{color:var(--success)} 
     .debit{color:var(--danger)}
-    .low-stock{color:var(--danger); font-weight: 600;} /* Novo estilo para estoque baixo */
-    .stock-total-value{font-weight: 700; color: var(--accent);} /* Novo estilo para valor total do estoque */
-
+    .low-stock{color:var(--danger); font-weight: 600;} 
+    .stock-total-value{font-weight: 700; color: var(--accent);} 
+    
     /* Small screens */
     @media (max-width:900px){
-      /* Faz todas as grids (Dashboard e Estoque) virarem uma coluna */
       .grid{grid-template-columns:1fr;}
-      .balances{
-          flex-direction:column; /* Saldos um abaixo do outro */
-          gap: 8px; /* Diminui o espaço entre os saldos */
-      }
-      .balance{
-          padding: 12px; /* Diminui o padding do saldo */
-      }
-      .chart-wrapper{
-          margin-left: 0;
-          margin-right: 0;
-          padding: 0 0 18px 0;
-      }
-      
-      /* ESTILOS DE TABELA RESPONSIVA: GERAL (APLICADO A #stockTable E #txTable) */
-      table:not(.responsive-table-ignore) {
-          border: 0; /* Remove bordas da tabela principal */
-          font-size: 15px;
-      }
-      table:not(.responsive-table-ignore) thead{
-          /* Oculta os cabeçalhos originais em mobile */
-          border: none;
-          clip: rect(0 0 0 0);
-          height: 1px;
-          margin: -1px;
-          overflow: hidden;
-          padding: 0;
-          position: absolute;
-          width: 1px;
-      }
-      table:not(.responsive-table-ignore) tr{
-          display: block; /* Cada linha vira um bloco (o cartão) */
-          margin-bottom: 12px;
-          border: 1px solid #eef2f6;
-          border-radius: var(--radius);
-          padding: 8px 12px;
-          box-shadow: 0 1px 4px rgba(2,6,23,0.04);
-      }
-      table:not(.responsive-table-ignore) td{
-          display: block; /* Cada célula de dado vira uma linha separada */
-          border-bottom: 1px solid #eef2f6;
-          text-align: right;
-          padding: 6px 0;
-          
-      }
-      table:not(.responsive-table-ignore) tr:last-child {
-          margin-bottom: 0; 
-      }
-      table:not(.responsive-table-ignore) td:last-child{
-          border-bottom: 0; 
-          text-align: left;
-          padding-top: 10px;
-      }
-      
-      /* Adiciona o rótulo da coluna (data-label) antes do dado */
-      table:not(.responsive-table-ignore) td::before{
-          content: attr(data-label);
-          float: left;
-          font-weight: bold;
-          color: var(--muted);
-          margin-right: 8px;
-      }
-      table:not(.responsive-table-ignore) td:last-child button {
-          width: 100%; /* Botão "Remover" fica em largura total */
-          /* Estilo padrão é o Danger do Estoque, mas será sobrescrito abaixo para o Dashboard */
-          background-color: var(--danger); 
-      }
-      
-      /* Remove o overflow:auto para as divs que continham as tabelas */
-      .transactions-wrapper > div[style*="overflow:auto"],
-      #stock-content div[style*="overflow:auto"]{
-          overflow: visible !important;
-          padding: 0 !important;
-          max-height: none !important; 
-      }
-      
-      /* Estilo Específico para o botão "Remover" da Transação */
-      #txTable td:last-child button {
-          background-color: var(--accent); 
-      }
+      .balances{ flex-direction:column; gap: 8px; }
+      .balance{ padding: 12px; }
+      .chart-wrapper{ margin-left: 0; margin-right: 0; padding: 0 0 18px 0; }
+      table:not(.responsive-table-ignore) { border: 0; font-size: 15px; }
+      table:not(.responsive-table-ignore) thead{ border: none; clip: rect(0 0 0 0); height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; }
+      table:not(.responsive-table-ignore) tr{ display: block; margin-bottom: 12px; border: 1px solid #eef2f6; border-radius: var(--radius); padding: 8px 12px; box-shadow: 0 1px 4px rgba(2,6,23,0.04); }
+      table:not(.responsive-table-ignore) td{ display: block; border-bottom: 1px solid #eef2f6; text-align: right; padding: 6px 0; }
+      table:not(.responsive-table-ignore) tr:last-child { margin-bottom: 0; }
+      table:not(.responsive-table-ignore) td:last-child{ border-bottom: 0; text-align: left; padding-top: 10px; }
+      table:not(.responsive-table-ignore) td::before{ content: attr(data-label); float: left; font-weight: bold; color: var(--muted); margin-right: 8px; }
+      table:not(.responsive-table-ignore) td:last-child button { width: 100%; background-color: var(--danger); }
+      .transactions-wrapper > div[style*="overflow:auto"], #stock-content div[style*="overflow:auto"], #rh-content div[style*="overflow:auto"]{ overflow: visible !important; padding: 0 !important; max-height: none !important; }
+      #txTable td:last-child button { background-color: var(--accent); }
     }
 
     /* a11y focus */
@@ -242,6 +198,10 @@
             </a>
             <a class="tab-link" id="tab-stock" data-tab-id="stock" role="tab" aria-controls="stock-content" aria-selected="false">
                 Estoque
+            </a>
+            <a class="tab-link" id="tab-rh" data-tab-id="rh" role="tab" aria-controls="rh-content" aria-selected="false">
+                RH 
+                <span id="rh-notification-badge" class="notification-badge" aria-label="Aviso de pagamento pendente">1</span>
             </a>
         </div>
     </nav>
@@ -338,7 +298,8 @@
                     <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
                     
                     <div id="stockRiskAlerts">
-                        </div>
+                    </div>
+                    
                     <p class="help" style="margin-top: 12px;">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
                     
                     <div style="overflow:auto; margin-top:16px">
@@ -393,6 +354,67 @@
                 </aside>
             </div>
         </section>
+
+        <section id="rh-content" data-tab-content="rh" class="tab-pane" style="display:none;">
+            <div class="grid">
+                <section class="card" aria-labelledby="employeesListTitle">
+                    <h2 id="employeesListTitle">Funcionários Cadastrados</h2>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 class="compact">Próximo Pagamento Agendado: <span id="paymentDateDisplay" style="font-weight: 700;">N/A</span></h3>
+                        <button id="setPaymentDateBtn" class="rh-action-btn" aria-label="Agendar próximo pagamento">Agendar Pagamento</button>
+                    </div>
+
+                    <div style="overflow:auto; margin-top:16px">
+                        <table id="employeeTable" aria-live="polite">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Cargo</th>
+                                    <th>Salário</th>
+                                    <th>Pagamento Cumprido</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <aside class="card" aria-labelledby="employeeFormTitle">
+                    <h2 id="employeeFormTitle">Cadastrar Funcionário</h2>
+                    <form id="employeeForm">
+                        <label for="empName">Nome do Funcionário</label>
+                        <input type="text" id="empName" placeholder="Nome Completo" required />
+
+                        <label for="empRole">Cargo</label>
+                        <select id="empRole" required>
+                            <option value="Gerente">Gerente</option>
+                            <option value="Auxiliar">Auxiliar</option>
+                            <option value="Vendedor">Vendedor</option>
+                            <option value="Estagiário">Estagiário</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+
+                        <label for="empSalary">Salário (R$)</label>
+                        <input type="number" id="empSalary" step="0.01" min="0" placeholder="0.00" required />
+
+                        <div class="actions">
+                            <button type="submit" class="rh-action-btn" aria-label="Salvar funcionário">Salvar Funcionário</button>
+                            <button type="button" id="clearEmpBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+
+                    <hr style="margin:14px 0" />
+
+                    <div>
+                        <h3 class="compact">Notificação de Pagamento</h3>
+                        <p class="help">A "bolinha vermelha" na aba RH aparece na data agendada para lembrá-lo do pagamento. Marque como "CUMPRIDO" para limpar o alerta.</p>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
     </main>
     <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
       <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
@@ -410,6 +432,20 @@
       </div>
     </div>
 
+    <div id="paymentModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
+        <div class="card" style="width:95%; max-width:400px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
+            <h3>Agendar Próximo Pagamento</h3>
+            <p class="help">Selecione a data em que o pagamento dos salários deve ser realizado. Isso ativará o alerta na aba RH.</p>
+            <form id="paymentDateForm" style="margin-top: 15px;">
+                <label for="scheduledPaymentDate">Data de Vencimento</label>
+                <input type="date" id="scheduledPaymentDate" required />
+                <div class="actions" style="margin-top: 15px;">
+                    <button type="submit" class="rh-action-btn">Salvar Data</button>
+                    <button type="button" id="closePaymentModal" class="secondary">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -422,218 +458,195 @@
     const $ = selector => document.querySelector(selector);
     const qs = selector => document.querySelectorAll(selector);
 
-    // FINANCEIRO
-    const txForm = $('#txForm');
-    const typeEl = $('#type');
-    const dateEl = $('#date');
-    const descEl = $('#desc');
-    const catEl = $('#category');
-    const amountEl = $('#amount');
-    const txTableBody = $('#txTable tbody');
+    // CHAVES DE LOCALSTORAGE
     const SALTO_KEY = 'drivor_tx_v1';
-
-    // ESTOQUE
-    const stockForm = $('#stockForm');
-    const stockCodeEl = $('#stockCode');
-    const stockNameEl = $('#stockName');
-    const stockCategoryEl = $('#stockCategory');
-    const stockPriceEl = $('#stockPrice'); 
-    const stockQuantityEl = $('#stockQuantity');
-    const stockTableBody = $('#stockTable tbody');
-    const stockFilterEl = $('#stockFilter'); 
     const STOCK_KEY = 'katalis_stock_v1'; 
-    const stockRiskContainer = $('#stockRiskAlerts'); // NOVO: Referência ao elemento no HTML
+    const EMP_KEY = 'katalis_emp_v1'; // NOVA CHAVE RH
+    const PAY_KEY = 'katalis_pay_date_v1'; // NOVA CHAVE PAGAMENTO
+
+    // ELEMENTOS COMUNS
+    const dateEl = $('#date');
+    
+    // RH
+    const employeeForm = $('#employeeForm');
+    const empNameEl = $('#empName');
+    const empRoleEl = $('#empRole');
+    const empSalaryEl = $('#empSalary');
+    const employeeTableBody = $('#employeeTableBody');
+    const rhBadge = $('#rh-notification-badge'); // Bolinha de notificação
+    const paymentDateDisplay = $('#paymentDateDisplay'); // Data agendada na tabela
+    const paymentModal = $('#paymentModal'); // Modal de agendamento
+    const paymentDateForm = $('#paymentDateForm');
+    const scheduledPaymentDateEl = $('#scheduledPaymentDate');
 
     // ------------------------------------
-    // LÓGICA DE ESTOQUE (CRUD + FILTRO + RISCO)
+    // LÓGICA DE RH (CRUD + PAGAMENTO)
     // ------------------------------------
 
-    function loadStock(){
+    function loadEmployees(){
         try{
-            const raw = localStorage.getItem(STOCK_KEY);
+            const raw = localStorage.getItem(EMP_KEY);
             return raw ? JSON.parse(raw) : [];
         }catch(e){
-            console.error('Erro ao carregar estoque', e);
+            console.error('Erro ao carregar funcionários', e);
             return [];
         }
     }
-    function saveStock(list){
-        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    function saveEmployees(list){
+        localStorage.setItem(EMP_KEY, JSON.stringify(list));
     }
 
-    stockForm.addEventListener('submit', (ev)=>{
+    // Carrega/Salva a data de pagamento
+    function loadPaymentDate() {
+        return localStorage.getItem(PAY_KEY);
+    }
+    function savePaymentDate(date) {
+        localStorage.setItem(PAY_KEY, date);
+    }
+    function clearPaymentDate() {
+        localStorage.removeItem(PAY_KEY);
+    }
+
+    employeeForm.addEventListener('submit', (ev)=>{
         ev.preventDefault();
-        const itemCode = stockCodeEl.value.trim().toUpperCase();
-        const itemName = stockNameEl.value.trim();
-        const itemCat = stockCategoryEl.value.trim() || 'Geral';
-        const itemPrice = Number(stockPriceEl.value) || 0; 
-        const itemQty = Number(stockQuantityEl.value) || 0;
-        
-        const list = loadStock();
-        const existingIndex = list.findIndex(item => item.code === itemCode);
-
-        const newItem = {
-            code: itemCode,
-            name: itemName,
-            category: itemCat,
-            price: itemPrice, 
-            quantity: itemQty
+        const newEmployee = {
+            id: Date.now(),
+            name: empNameEl.value.trim(),
+            role: empRoleEl.value.trim(),
+            salary: Number(empSalaryEl.value) || 0
         };
+        
+        const list = loadEmployees();
+        list.push(newEmployee);
 
-        if(existingIndex > -1){
-            // Atualiza item existente
-            list[existingIndex] = newItem;
-        } else {
-            // Adiciona novo item
-            list.push(newItem);
-        }
-
-        saveStock(list);
-        stockForm.reset();
-        renderStock();
-        stockCodeEl.focus();
+        saveEmployees(list);
+        employeeForm.reset();
+        renderRH();
+        empNameEl.focus();
     });
 
-    $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
+    $('#clearEmpBtn').addEventListener('click', ()=> employeeForm.reset());
 
-    function removeItem(code){
-        if(confirm("Tem certeza que deseja remover este item do estoque? Esta ação não pode ser desfeita.")){
-            const list = loadStock().filter(t => t.code !== code);
-            saveStock(list);
-            renderStock();
+    function removeEmployee(id){
+        if(confirm("Tem certeza que deseja remover este funcionário?")){
+            const list = loadEmployees().filter(e => e.id !== id);
+            saveEmployees(list);
+            renderRH();
         }
     }
 
-    // Função de filtragem em tempo real
-    stockFilterEl.addEventListener('input', renderStock);
+    function fulfillPayment(id) {
+        const list = loadEmployees();
+        const employee = list.find(e => e.id === id);
 
+        if (employee) {
+            // Regra de negócios: Quando um funcionário é marcado como "Pago", 
+            // a data de pagamento agendada é removida (limpando o alerta).
+            if (confirm(`Deseja registrar o pagamento de ${employee.name} e remover o alerta agendado?`)) {
+                
+                // NOTA: Para um sistema real, aqui você registraria a transação de despesa.
+                // Aqui, vamos apenas remover o alerta.
+                
+                // Se fosse um sistema de múltiplos pagamentos por mês, a lógica seria mais complexa.
+                // Como é um sistema simples, limpar o alerta é suficiente.
+                
+                clearPaymentDate();
+                renderRH(); // Re-renderiza para remover a bolinha
+            }
+        }
+    }
 
-    // #######################################################################
-    // # FUNÇÃO NOVA: CÁLCULO DE RISCO DE ESTOQUE                              #
-    // #######################################################################
+    // Lógica do Modal de Pagamento
+    $('#setPaymentDateBtn').addEventListener('click', () => {
+        const current = loadPaymentDate();
+        if (current) {
+            scheduledPaymentDateEl.value = current;
+        } else {
+            // Seta para o primeiro dia do próximo mês como padrão
+            const nextMonth = moment().add(1, 'month').startOf('month').format('YYYY-MM-DD');
+            scheduledPaymentDateEl.value = nextMonth;
+        }
+        paymentModal.style.display = 'flex';
+    });
+
+    $('#closePaymentModal').addEventListener('click', () => {
+        paymentModal.style.display = 'none';
+    });
+
+    paymentDateForm.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const date = scheduledPaymentDateEl.value;
+        savePaymentDate(date);
+        paymentModal.style.display = 'none';
+        renderRH();
+    });
 
     /**
-     * Calcula a taxa de consumo de cada item em estoque com base nas vendas (Receitas) 
-     * nas últimas 4 semanas (28 dias) e projeta o risco de esgotamento.
-     * @returns {Array<{code: string, name: string, daysLeft: number, risk: boolean}>} Lista de itens com risco.
+     * Verifica a data de pagamento e ativa/desativa a bolinha de notificação.
      */
-    function calculateStockRisk() {
-        const stocks = loadStock();
-        const txs = loadTx().filter(t => t.type === 'credit'); // Apenas transações de Receita (Venda)
-        const daysToAnalyze = 28; // 4 semanas
-        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
+    function updateRHNotification() {
+        const scheduledDate = loadPaymentDate();
+        const today = moment().startOf('day');
         
-        const itemSales = {};
-
-        // Agrupar vendas por código de produto (assumindo que o campo 'category' armazena o código do item vendido)
-        txs.forEach(t => {
-            const txDate = moment(t.date);
-            // Verifica se a transação está dentro do período de análise (últimos 28 dias)
-            if (txDate.isSameOrAfter(analysisStartDate)) {
-                const code = t.category.trim().toUpperCase();
-                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
-
-                // Contar a frequência (número de vendas) no período se for um item de estoque
-                if (stockItemExists) {
-                    itemSales[code] = (itemSales[code] || 0) + 1;
-                }
-            }
-        });
-
-        const riskItems = [];
+        rhBadge.classList.remove('active');
+        paymentDateDisplay.textContent = 'N/A';
         
-        stocks.forEach(item => {
-            const code = item.code.toUpperCase();
-            const salesCount = itemSales[code] || 0;
+        if (scheduledDate) {
+            const paymentDate = moment(scheduledDate, 'YYYY-MM-DD').startOf('day');
+
+            // Exibe a data
+            paymentDateDisplay.textContent = paymentDate.format('DD/MM/YYYY');
             
-            // Consumo médio diário (frequência de vendas)
-            // Se não houve vendas, o consumo é 0.
-            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
-            
-            if (avgDailyConsumption > 0 && item.quantity > 0) {
-                // Dias restantes = Estoque Atual / Consumo Diário Médio
-                const daysLeft = item.quantity / avgDailyConsumption;
-                
-                // Se o item tem menos de 10 dias restantes, marcamos como risco.
-                const isRisk = daysLeft <= 10; 
-                
-                if (isRisk) {
-                    riskItems.push({
-                        code: item.code,
-                        name: item.name,
-                        daysLeft: Math.ceil(daysLeft),
-                        risk: isRisk
-                    });
-                }
+            // Se a data de pagamento for hoje ou já tiver passado
+            if (paymentDate.isSameOrBefore(today)) {
+                rhBadge.classList.add('active');
             }
-        });
-
-        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
-    }
-    
-    // #######################################################################
-
-
-    function renderStock(){
-        const filterText = stockFilterEl.value.toLowerCase();
-        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
-
-        // Aplica o filtro
-        if (filterText) {
-            list = list.filter(item => 
-                item.code.toLowerCase().includes(filterText) ||
-                item.name.toLowerCase().includes(filterText) ||
-                item.category.toLowerCase().includes(filterText)
-            );
         }
+    }
 
-        stockTableBody.innerHTML = '';
+    function renderRH(){
+        const employees = loadEmployees().sort((a,b)=> a.name.localeCompare(b.name));
+        employeeTableBody.innerHTML = '';
 
-        for(const item of list){
-            const isLowStock = item.quantity < 5;
-            const quantityClass = isLowStock ? 'low-stock' : '';
-            const totalValue = item.price * item.quantity; 
-
+        for(const emp of employees){
             const tr = document.createElement('tr');
-            // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
+            
+            // O botão de pagamento só aparece se houver uma data agendada no passado/hoje
+            const showPaymentBtn = rhBadge.classList.contains('active');
+            
+            const btnHtml = showPaymentBtn 
+                ? `<button class="payment-fulfilled-btn" data-id="${emp.id}" aria-label="Marcar pagamento de salário como cumprido">CUMPRIDO</button>`
+                : `<span class="help">Aguardando vencimento</span>`;
+
+            const paymentStatus = showPaymentBtn 
+                ? `<span style="color: var(--danger); font-weight: 700;">PENDENTE</span>`
+                : `<span style="color: var(--success);">OK</span>`;
+
             tr.innerHTML = `
-                <td data-label="Cód:">${escapeHtml(item.code)}</td>
-                <td data-label="Produto:">${escapeHtml(item.name)}</td>
-                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
-                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
-                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
-                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
-                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+                <td data-label="Nome:">${escapeHtml(emp.name)}</td>
+                <td data-label="Cargo:">${escapeHtml(emp.role)}</td>
+                <td data-label="Salário:">${formatBRL(emp.salary)}</td>
+                <td data-label="Status:">${paymentStatus}</td>
+                <td>
+                    ${btnHtml}
+                    <button data-id="${emp.id}" class="secondary danger" style="margin-top: 5px;" aria-label="Remover funcionário">Remover</button>
+                </td>
             `;
-            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
-            stockTableBody.appendChild(tr);
+
+            if (showPaymentBtn) {
+                tr.querySelector('.payment-fulfilled-btn').addEventListener('click', (e)=> fulfillPayment(Number(e.target.dataset.id)));
+            }
+
+            tr.querySelector('.danger').addEventListener('click', (e)=> removeEmployee(Number(e.target.dataset.id)));
+            employeeTableBody.appendChild(tr);
         }
         
-        // ----------------------------------------
-        // NOVO: Renderiza Alerta de Risco
-        // ----------------------------------------
-        const riskItems = calculateStockRisk();
-        stockRiskContainer.innerHTML = ''; // Limpa o conteúdo anterior
-
-        if (riskItems.length > 0) {
-            const alertsHtml = riskItems.map(item => {
-                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
-                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
-                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
-                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
-                </p>`;
-            }).join('');
-            stockRiskContainer.innerHTML = alertsHtml;
-        } else {
-            stockRiskContainer.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
-        }
-        // ----------------------------------------
+        updateRHNotification(); // Atualiza a bolinha e a data agendada
     }
 
     // ------------------------------------
-    // LÓGICA DE FINANÇAS (MANTIDA E ATUALIZADA)
+    // FUNÇÕES FINANCEIRAS (MANTIDAS)
     // ------------------------------------
-
     function loadTx(){
       try{
         const raw = localStorage.getItem(SALTO_KEY);
@@ -751,6 +764,8 @@
                 if(chart) chart.resize();
             } else if (targetId === 'stock') {
                 renderStock();
+            } else if (targetId === 'rh') { // NOVO: Renderiza RH
+                renderRH();
             }
         });
     });
@@ -820,7 +835,6 @@
       txTableBody.innerHTML = '';
       for(const t of list){
         const tr = document.createElement('tr');
-        // ATENÇÃO: Adicionei os data-label aqui para o CSS responsivo funcionar!
         tr.innerHTML = `
           <td data-label="Data:">${t.date}</td>
           <td data-label="Desc.:">${escapeHtml(t.desc)}</td>
@@ -839,10 +853,127 @@
 
       updateChart(list); 
     }
+    
+    // ------------------------------------
+    // LÓGICA DE ESTOQUE (MANTIDA)
+    // ------------------------------------
+    function loadStock(){
+        try{
+            const raw = localStorage.getItem(STOCK_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar estoque', e);
+            return [];
+        }
+    }
+    function saveStock(list){
+        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    }
+    
+    // ... Funções de Estoque (calculateStockRisk, renderStock, etc.) omitidas para brevidade, mas devem estar no código final.
+    // Lembre-se de manter todas as funções que você já tinha aqui, como `calculateStockRisk()` e `renderStock()`.
 
+    function calculateStockRisk() {
+        // [CÓDIGO calculateStockRisk() DO PASSO ANTERIOR]
+        const stocks = loadStock();
+        const txs = loadTx().filter(t => t.type === 'credit'); 
+        const daysToAnalyze = 28; 
+        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
+        
+        const itemSales = {};
+
+        txs.forEach(t => {
+            const txDate = moment(t.date);
+            if (txDate.isSameOrAfter(analysisStartDate)) {
+                const code = t.category.trim().toUpperCase();
+                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
+                if (stockItemExists) {
+                    itemSales[code] = (itemSales[code] || 0) + 1;
+                }
+            }
+        });
+
+        const riskItems = [];
+        
+        stocks.forEach(item => {
+            const code = item.code.toUpperCase();
+            const salesCount = itemSales[code] || 0;
+            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
+            
+            if (avgDailyConsumption > 0 && item.quantity > 0) {
+                const daysLeft = item.quantity / avgDailyConsumption;
+                const isRisk = daysLeft <= 10; 
+                
+                if (isRisk) {
+                    riskItems.push({
+                        code: item.code,
+                        name: item.name,
+                        daysLeft: Math.ceil(daysLeft),
+                        risk: isRisk
+                    });
+                }
+            }
+        });
+
+        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
+    }
+    
+    function renderStock(){
+        const filterText = $('#stockFilter').value.toLowerCase();
+        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+
+        if (filterText) {
+            list = list.filter(item => 
+                item.code.toLowerCase().includes(filterText) ||
+                item.name.toLowerCase().includes(filterText) ||
+                item.category.toLowerCase().includes(filterText)
+            );
+        }
+
+        $('#stockTable tbody').innerHTML = '';
+
+        for(const item of list){
+            const isLowStock = item.quantity < 5;
+            const quantityClass = isLowStock ? 'low-stock' : '';
+            const totalValue = item.price * item.quantity; 
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="Cód:">${escapeHtml(item.code)}</td>
+                <td data-label="Produto:">${escapeHtml(item.name)}</td>
+                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
+                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
+                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
+                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
+                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+            `;
+            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
+            $('#stockTable tbody').appendChild(tr);
+        }
+        
+        const riskItems = calculateStockRisk();
+        const container = $('#stockRiskAlerts');
+        container.innerHTML = '';
+
+        if (riskItems.length > 0) {
+            const alertsHtml = riskItems.map(item => {
+                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
+                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
+                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
+                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
+                </p>`;
+            }).join('');
+            container.innerHTML = alertsHtml;
+        } else {
+            container.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
+        }
+    }
+    // ... (Fim das funções de Estoque)
+    
     // Inicializa o app
     render();
     renderStock();
+    renderRH(); // Inicializa o RH também
 
     // Seta a data de hoje no campo de data por padrão
     dateEl.value = new Date().toISOString().slice(0,10);

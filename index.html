@@ -337,7 +337,9 @@
                     
                     <input type="text" id="stockFilter" placeholder="Filtrar por código, nome ou categoria..." style="margin-bottom: 12px;" />
                     
-                    <p class="help">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
+                    <div id="stockRiskAlerts">
+                        </div>
+                    <p class="help" style="margin-top: 12px;">Gerencie o seu inventário de produtos. O estoque é salvo no navegador (localStorage).</p>
                     
                     <div style="overflow:auto; margin-top:16px">
                         <table id="stockTable" aria-live="polite">
@@ -440,9 +442,10 @@
     const stockTableBody = $('#stockTable tbody');
     const stockFilterEl = $('#stockFilter'); 
     const STOCK_KEY = 'katalis_stock_v1'; 
+    const stockRiskContainer = $('#stockRiskAlerts'); // NOVO: Referência ao elemento no HTML
 
     // ------------------------------------
-    // LÓGICA DE ESTOQUE (CRUD + FILTRO)
+    // LÓGICA DE ESTOQUE (CRUD + FILTRO + RISCO)
     // ------------------------------------
 
     function loadStock(){
@@ -494,13 +497,82 @@
     $('#clearStockBtn').addEventListener('click', ()=> stockForm.reset());
 
     function removeItem(code){
-        const list = loadStock().filter(t => t.code !== code);
-        saveStock(list);
-        renderStock();
+        if(confirm("Tem certeza que deseja remover este item do estoque? Esta ação não pode ser desfeita.")){
+            const list = loadStock().filter(t => t.code !== code);
+            saveStock(list);
+            renderStock();
+        }
     }
 
     // Função de filtragem em tempo real
     stockFilterEl.addEventListener('input', renderStock);
+
+
+    // #######################################################################
+    // # FUNÇÃO NOVA: CÁLCULO DE RISCO DE ESTOQUE                              #
+    // #######################################################################
+
+    /**
+     * Calcula a taxa de consumo de cada item em estoque com base nas vendas (Receitas) 
+     * nas últimas 4 semanas (28 dias) e projeta o risco de esgotamento.
+     * @returns {Array<{code: string, name: string, daysLeft: number, risk: boolean}>} Lista de itens com risco.
+     */
+    function calculateStockRisk() {
+        const stocks = loadStock();
+        const txs = loadTx().filter(t => t.type === 'credit'); // Apenas transações de Receita (Venda)
+        const daysToAnalyze = 28; // 4 semanas
+        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
+        
+        const itemSales = {};
+
+        // Agrupar vendas por código de produto (assumindo que o campo 'category' armazena o código do item vendido)
+        txs.forEach(t => {
+            const txDate = moment(t.date);
+            // Verifica se a transação está dentro do período de análise (últimos 28 dias)
+            if (txDate.isSameOrAfter(analysisStartDate)) {
+                const code = t.category.trim().toUpperCase();
+                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
+
+                // Contar a frequência (número de vendas) no período se for um item de estoque
+                if (stockItemExists) {
+                    itemSales[code] = (itemSales[code] || 0) + 1;
+                }
+            }
+        });
+
+        const riskItems = [];
+        
+        stocks.forEach(item => {
+            const code = item.code.toUpperCase();
+            const salesCount = itemSales[code] || 0;
+            
+            // Consumo médio diário (frequência de vendas)
+            // Se não houve vendas, o consumo é 0.
+            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
+            
+            if (avgDailyConsumption > 0 && item.quantity > 0) {
+                // Dias restantes = Estoque Atual / Consumo Diário Médio
+                const daysLeft = item.quantity / avgDailyConsumption;
+                
+                // Se o item tem menos de 10 dias restantes, marcamos como risco.
+                const isRisk = daysLeft <= 10; 
+                
+                if (isRisk) {
+                    riskItems.push({
+                        code: item.code,
+                        name: item.name,
+                        daysLeft: Math.ceil(daysLeft),
+                        risk: isRisk
+                    });
+                }
+            }
+        });
+
+        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
+    }
+    
+    // #######################################################################
+
 
     function renderStock(){
         const filterText = stockFilterEl.value.toLowerCase();
@@ -536,6 +608,26 @@
             tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
             stockTableBody.appendChild(tr);
         }
+        
+        // ----------------------------------------
+        // NOVO: Renderiza Alerta de Risco
+        // ----------------------------------------
+        const riskItems = calculateStockRisk();
+        stockRiskContainer.innerHTML = ''; // Limpa o conteúdo anterior
+
+        if (riskItems.length > 0) {
+            const alertsHtml = riskItems.map(item => {
+                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
+                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
+                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
+                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
+                </p>`;
+            }).join('');
+            stockRiskContainer.innerHTML = alertsHtml;
+        } else {
+            stockRiskContainer.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
+        }
+        // ----------------------------------------
     }
 
     // ------------------------------------

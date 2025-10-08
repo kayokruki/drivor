@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Katalis — Gerenciador Financeiro e RH</title>
-  <meta name="description" content="Katalis: controle de receitas, despesas, gestão de estoque e RH para pequenas empresas" />
+  <title>Katalis — Gerenciador Completo</title>
+  <meta name="description" content="Katalis: controle de receitas, despesas, gestão de estoque, RH e tarefas para pequenas empresas" />
   
   <link rel="icon" href="images/favicons/katalis-favicon-16x16.png" sizes="16x16" type="image/png">
   <link rel="icon" href="images/favicons/katalis-favicon-32x32.png" sizes="32x32" type="image/png">
@@ -46,7 +46,7 @@
       cursor: pointer;
       border-bottom: 3px solid transparent;
       transition: color 0.2s;
-      position: relative; /* Para a bolinha de notificação */
+      position: relative; 
     }
     .tab-link:hover{
         color: var(--accent);
@@ -71,11 +71,11 @@
         border-radius: 50%;
         width: 16px;
         height: 16px;
-        display: none; /* Inicia oculto */
+        display: none; 
         align-items: center;
         justify-content: center;
         z-index: 10;
-        border: 2px solid var(--card); /* Para destacar */
+        border: 2px solid var(--card); 
     }
     .notification-badge.active {
         display: flex;
@@ -134,6 +134,9 @@
     
     .payment-fulfilled-btn{ background-color: var(--success); padding: 6px 10px; font-size: 13px; }
 
+    .todo-item-btn{ background-color: #5c626f; } /* Um cinza para Tarefas */
+    .todo-item-btn:hover{ background-color: #3b424e; }
+    
     /* Transactions & Stock Table */
     table{width:100%; border-collapse:collapse; font-size:14px}
     th,td{padding:10px 8px; text-align:left; border-bottom:1px solid #eef2f6}
@@ -145,6 +148,46 @@
     .low-stock{color:var(--danger); font-weight: 600;} 
     .stock-total-value{font-weight: 700; color: var(--accent);} 
     
+    /* Lista de Tarefas (To-Do List) */
+    .todo-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 16px;
+    }
+    .todo-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eef2f6;
+    }
+    .todo-list li:last-child {
+        border-bottom: none;
+    }
+    .todo-text {
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+    .todo-done .todo-text {
+        text-decoration: line-through;
+        color: var(--muted);
+    }
+    .todo-actions button {
+        background: transparent;
+        color: var(--muted);
+        border: none;
+        padding: 4px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .todo-actions .complete-btn {
+        color: var(--success);
+    }
+    .todo-actions .remove-btn {
+        color: var(--danger);
+        margin-left: 8px;
+    }
+
     /* Small screens */
     @media (max-width:900px){
       .grid{grid-template-columns:1fr;}
@@ -161,6 +204,14 @@
       table:not(.responsive-table-ignore) td:last-child button { width: 100%; background-color: var(--danger); }
       .transactions-wrapper > div[style*="overflow:auto"], #stock-content div[style*="overflow:auto"], #rh-content div[style*="overflow:auto"]{ overflow: visible !important; padding: 0 !important; max-height: none !important; }
       #txTable td:last-child button { background-color: var(--accent); }
+
+      /* Ajuste para RH em telas menores */
+      #employeeTable td:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: stretch;
+      }
     }
 
     /* a11y focus */
@@ -202,6 +253,9 @@
             <a class="tab-link" id="tab-rh" data-tab-id="rh" role="tab" aria-controls="rh-content" aria-selected="false">
                 RH 
                 <span id="rh-notification-badge" class="notification-badge" aria-label="Aviso de pagamento pendente">1</span>
+            </a>
+            <a class="tab-link" id="tab-todo" data-tab-id="todo" role="tab" aria-controls="todo-content" aria-selected="false">
+                Tarefas
             </a>
         </div>
     </nav>
@@ -415,6 +469,31 @@
             </div>
         </section>
 
+        <section id="todo-content" data-tab-content="todo" class="tab-pane" style="display:none;">
+            <div class="grid" style="grid-template-columns: 1fr;">
+                <section class="card" aria-labelledby="todoListTitle">
+                    <h2 id="todoListTitle">Minhas Tarefas do Dia</h2>
+                    <p class="help">Liste aqui as tarefas importantes do seu dia-a-dia na gestão do negócio.</p>
+                    
+                    <ul id="todoList" class="todo-list">
+                        </ul>
+                </section>
+                
+                <aside class="card" aria-labelledby="todoFormTitle">
+                    <h2 id="todoFormTitle">Adicionar Nova Tarefa</h2>
+                    <form id="todoForm">
+                        <label for="todoText">Descrição da Tarefa</label>
+                        <input type="text" id="todoText" placeholder="Ex: Pagar boleto da internet" required />
+                        
+                        <div class="actions">
+                            <button type="submit" class="todo-item-btn" aria-label="Adicionar tarefa">Adicionar Tarefa</button>
+                            <button type="button" id="clearTodoBtn" class="secondary">Limpar</button>
+                        </div>
+                    </form>
+                </aside>
+            </div>
+        </section>
+
     </main>
     <div id="helpModal" role="dialog" aria-modal="true" aria-hidden="true" style="display:none; position:fixed; inset:0; align-items:center; justify-content:center; background-color: rgba(0,0,0,0.2);">
       <div class="card" style="width:95%; max-width:720px; box-shadow:0 10px 40px rgba(3,7,18,0.2)">
@@ -461,8 +540,9 @@
     // CHAVES DE LOCALSTORAGE
     const SALTO_KEY = 'drivor_tx_v1';
     const STOCK_KEY = 'katalis_stock_v1'; 
-    const EMP_KEY = 'katalis_emp_v1'; // NOVA CHAVE RH
-    const PAY_KEY = 'katalis_pay_date_v1'; // NOVA CHAVE PAGAMENTO
+    const EMP_KEY = 'katalis_emp_v1'; 
+    const PAY_KEY = 'katalis_pay_date_v1'; 
+    const TODO_KEY = 'katalis_todo_v1'; // NOVA CHAVE TAREFAS
 
     // ELEMENTOS COMUNS
     const dateEl = $('#date');
@@ -473,14 +553,107 @@
     const empRoleEl = $('#empRole');
     const empSalaryEl = $('#empSalary');
     const employeeTableBody = $('#employeeTableBody');
-    const rhBadge = $('#rh-notification-badge'); // Bolinha de notificação
-    const paymentDateDisplay = $('#paymentDateDisplay'); // Data agendada na tabela
-    const paymentModal = $('#paymentModal'); // Modal de agendamento
+    const rhBadge = $('#rh-notification-badge');
+    const paymentDateDisplay = $('#paymentDateDisplay'); 
+    const paymentModal = $('#paymentModal'); 
     const paymentDateForm = $('#paymentDateForm');
     const scheduledPaymentDateEl = $('#scheduledPaymentDate');
 
+    // TAREFAS
+    const todoForm = $('#todoForm');
+    const todoTextEl = $('#todoText');
+    const todoListEl = $('#todoList');
+
+
     // ------------------------------------
-    // LÓGICA DE RH (CRUD + PAGAMENTO)
+    // LÓGICA DE TAREFAS (CRUD)
+    // ------------------------------------
+
+    function loadTodos(){
+        try{
+            const raw = localStorage.getItem(TODO_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar tarefas', e);
+            return [];
+        }
+    }
+    function saveTodos(list){
+        localStorage.setItem(TODO_KEY, JSON.stringify(list));
+    }
+
+    todoForm.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const text = todoTextEl.value.trim();
+        if (text) {
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                done: false
+            };
+            const list = loadTodos();
+            list.push(newTodo);
+            saveTodos(list);
+            todoForm.reset();
+            renderTodo();
+        }
+    });
+
+    $('#clearTodoBtn').addEventListener('click', () => todoForm.reset());
+
+    function toggleTodo(id) {
+        const list = loadTodos();
+        const index = list.findIndex(t => t.id === id);
+        if (index > -1) {
+            list[index].done = !list[index].done;
+            saveTodos(list);
+            renderTodo();
+        }
+    }
+
+    function removeTodo(id) {
+        if (confirm("Deseja remover esta tarefa?")) {
+            const list = loadTodos().filter(t => t.id !== id);
+            saveTodos(list);
+            renderTodo();
+        }
+    }
+
+    function renderTodo() {
+        const list = loadTodos();
+        todoListEl.innerHTML = '';
+
+        if (list.length === 0) {
+            todoListEl.innerHTML = '<li style="justify-content:center; color:var(--muted); border-bottom: none;">Nenhuma tarefa pendente.</li>';
+            return;
+        }
+
+        // Ordena: Pendentes primeiro, depois Concluídas
+        const sortedList = list.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
+
+        for (const todo of sortedList) {
+            const li = document.createElement('li');
+            li.className = todo.done ? 'todo-done' : '';
+            li.innerHTML = `
+                <span class="todo-text">${escapeHtml(todo.text)}</span>
+                <div class="todo-actions">
+                    <button class="complete-btn" data-id="${todo.id}" aria-label="${todo.done ? 'Marcar como pendente' : 'Marcar como concluída'}">
+                        ${todo.done ? '↩️' : '✅'}
+                    </button>
+                    <button class="remove-btn" data-id="${todo.id}" aria-label="Remover tarefa">🗑️</button>
+                </div>
+            `;
+            
+            li.querySelector('.complete-btn').addEventListener('click', (e) => toggleTodo(Number(e.currentTarget.dataset.id)));
+            li.querySelector('.remove-btn').addEventListener('click', (e) => removeTodo(Number(e.currentTarget.dataset.id)));
+            
+            todoListEl.appendChild(li);
+        }
+    }
+
+
+    // ------------------------------------
+    // LÓGICA DE RH (MANTIDA)
     // ------------------------------------
 
     function loadEmployees(){
@@ -496,7 +669,6 @@
         localStorage.setItem(EMP_KEY, JSON.stringify(list));
     }
 
-    // Carrega/Salva a data de pagamento
     function loadPaymentDate() {
         return localStorage.getItem(PAY_KEY);
     }
@@ -536,33 +708,20 @@
     }
 
     function fulfillPayment(id) {
-        const list = loadEmployees();
-        const employee = list.find(e => e.id === id);
-
+        const employee = loadEmployees().find(e => e.id === id);
         if (employee) {
-            // Regra de negócios: Quando um funcionário é marcado como "Pago", 
-            // a data de pagamento agendada é removida (limpando o alerta).
             if (confirm(`Deseja registrar o pagamento de ${employee.name} e remover o alerta agendado?`)) {
-                
-                // NOTA: Para um sistema real, aqui você registraria a transação de despesa.
-                // Aqui, vamos apenas remover o alerta.
-                
-                // Se fosse um sistema de múltiplos pagamentos por mês, a lógica seria mais complexa.
-                // Como é um sistema simples, limpar o alerta é suficiente.
-                
                 clearPaymentDate();
-                renderRH(); // Re-renderiza para remover a bolinha
+                renderRH(); 
             }
         }
     }
 
-    // Lógica do Modal de Pagamento
     $('#setPaymentDateBtn').addEventListener('click', () => {
         const current = loadPaymentDate();
         if (current) {
             scheduledPaymentDateEl.value = current;
         } else {
-            // Seta para o primeiro dia do próximo mês como padrão
             const nextMonth = moment().add(1, 'month').startOf('month').format('YYYY-MM-DD');
             scheduledPaymentDateEl.value = nextMonth;
         }
@@ -581,9 +740,6 @@
         renderRH();
     });
 
-    /**
-     * Verifica a data de pagamento e ativa/desativa a bolinha de notificação.
-     */
     function updateRHNotification() {
         const scheduledDate = loadPaymentDate();
         const today = moment().startOf('day');
@@ -594,10 +750,8 @@
         if (scheduledDate) {
             const paymentDate = moment(scheduledDate, 'YYYY-MM-DD').startOf('day');
 
-            // Exibe a data
             paymentDateDisplay.textContent = paymentDate.format('DD/MM/YYYY');
             
-            // Se a data de pagamento for hoje ou já tiver passado
             if (paymentDate.isSameOrBefore(today)) {
                 rhBadge.classList.add('active');
             }
@@ -608,11 +762,10 @@
         const employees = loadEmployees().sort((a,b)=> a.name.localeCompare(b.name));
         employeeTableBody.innerHTML = '';
 
+        const showPaymentBtn = rhBadge.classList.contains('active');
+
         for(const emp of employees){
             const tr = document.createElement('tr');
-            
-            // O botão de pagamento só aparece se houver uma data agendada no passado/hoje
-            const showPaymentBtn = rhBadge.classList.contains('active');
             
             const btnHtml = showPaymentBtn 
                 ? `<button class="payment-fulfilled-btn" data-id="${emp.id}" aria-label="Marcar pagamento de salário como cumprido">CUMPRIDO</button>`
@@ -641,11 +794,123 @@
             employeeTableBody.appendChild(tr);
         }
         
-        updateRHNotification(); // Atualiza a bolinha e a data agendada
+        updateRHNotification(); 
     }
 
+
     // ------------------------------------
-    // FUNÇÕES FINANCEIRAS (MANTIDAS)
+    // LÓGICA DE ESTOQUE (MANTIDA)
+    // ------------------------------------
+    function loadStock(){
+        try{
+            const raw = localStorage.getItem(STOCK_KEY);
+            return raw ? JSON.parse(raw) : [];
+        }catch(e){
+            console.error('Erro ao carregar estoque', e);
+            return [];
+        }
+    }
+    function saveStock(list){
+        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
+    }
+
+    function calculateStockRisk() {
+        const stocks = loadStock();
+        const txs = loadTx().filter(t => t.type === 'credit'); 
+        const daysToAnalyze = 28; 
+        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
+        
+        const itemSales = {};
+
+        txs.forEach(t => {
+            const txDate = moment(t.date);
+            if (txDate.isSameOrAfter(analysisStartDate)) {
+                const code = t.category.trim().toUpperCase();
+                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
+                if (stockItemExists) {
+                    itemSales[code] = (itemSales[code] || 0) + 1;
+                }
+            }
+        });
+
+        const riskItems = [];
+        
+        stocks.forEach(item => {
+            const code = item.code.toUpperCase();
+            const salesCount = itemSales[code] || 0;
+            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
+            
+            if (avgDailyConsumption > 0 && item.quantity > 0) {
+                const daysLeft = item.quantity / avgDailyConsumption;
+                const isRisk = daysLeft <= 10; 
+                
+                if (isRisk) {
+                    riskItems.push({
+                        code: item.code,
+                        name: item.name,
+                        daysLeft: Math.ceil(daysLeft),
+                        risk: isRisk
+                    });
+                }
+            }
+        });
+
+        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
+    }
+    
+    function renderStock(){
+        const filterText = $('#stockFilter').value.toLowerCase();
+        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
+
+        if (filterText) {
+            list = list.filter(item => 
+                item.code.toLowerCase().includes(filterText) ||
+                item.name.toLowerCase().includes(filterText) ||
+                item.category.toLowerCase().includes(filterText)
+            );
+        }
+
+        $('#stockTable tbody').innerHTML = '';
+
+        for(const item of list){
+            const isLowStock = item.quantity < 5;
+            const quantityClass = isLowStock ? 'low-stock' : '';
+            const totalValue = item.price * item.quantity; 
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td data-label="Cód:">${escapeHtml(item.code)}</td>
+                <td data-label="Produto:">${escapeHtml(item.name)}</td>
+                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
+                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
+                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
+                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
+                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
+            `;
+            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
+            $('#stockTable tbody').appendChild(tr);
+        }
+        
+        const riskItems = calculateStockRisk();
+        const container = $('#stockRiskAlerts');
+        container.innerHTML = '';
+
+        if (riskItems.length > 0) {
+            const alertsHtml = riskItems.map(item => {
+                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
+                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
+                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
+                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
+                </p>`;
+            }).join('');
+            container.innerHTML = alertsHtml;
+        } else {
+            container.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
+        }
+    }
+    
+    // ------------------------------------
+    // LÓGICA FINANCEIRA (MANTIDA)
     // ------------------------------------
     function loadTx(){
       try{
@@ -744,7 +1009,6 @@
         link.addEventListener('click', (e) => {
             const targetId = e.target.getAttribute('data-tab-id');
             
-            // Remove 'active' de todos os links e oculta todos os conteúdos
             tabLinks.forEach(l => {
                 l.classList.remove('active');
                 l.setAttribute('aria-selected', 'false');
@@ -753,19 +1017,19 @@
                 p.style.display = 'none';
             });
 
-            // Adiciona 'active' ao link clicado e mostra o conteúdo correspondente
             e.target.classList.add('active');
             e.target.setAttribute('aria-selected', 'true');
             $(`#${targetId}-content`).style.display = 'block';
             
-            // Renderiza o conteúdo correto ao mudar de aba
             if (targetId === 'dashboard') {
                 render(); 
                 if(chart) chart.resize();
             } else if (targetId === 'stock') {
                 renderStock();
-            } else if (targetId === 'rh') { // NOVO: Renderiza RH
+            } else if (targetId === 'rh') {
                 renderRH();
+            } else if (targetId === 'todo') { // NOVO: Renderiza Tarefas
+                renderTodo();
             }
         });
     });
@@ -774,7 +1038,6 @@
     // --- Chart support ---
     let chart = null;
 
-    // Função de atualização simplificada para focar APENAS no gráfico de pizza
     function updateChart(list){
       const days = 30;
       let totalCredits = 0;
@@ -854,126 +1117,11 @@
       updateChart(list); 
     }
     
-    // ------------------------------------
-    // LÓGICA DE ESTOQUE (MANTIDA)
-    // ------------------------------------
-    function loadStock(){
-        try{
-            const raw = localStorage.getItem(STOCK_KEY);
-            return raw ? JSON.parse(raw) : [];
-        }catch(e){
-            console.error('Erro ao carregar estoque', e);
-            return [];
-        }
-    }
-    function saveStock(list){
-        localStorage.setItem(STOCK_KEY, JSON.stringify(list));
-    }
-    
-    // ... Funções de Estoque (calculateStockRisk, renderStock, etc.) omitidas para brevidade, mas devem estar no código final.
-    // Lembre-se de manter todas as funções que você já tinha aqui, como `calculateStockRisk()` e `renderStock()`.
-
-    function calculateStockRisk() {
-        // [CÓDIGO calculateStockRisk() DO PASSO ANTERIOR]
-        const stocks = loadStock();
-        const txs = loadTx().filter(t => t.type === 'credit'); 
-        const daysToAnalyze = 28; 
-        const analysisStartDate = moment().subtract(daysToAnalyze, 'days');
-        
-        const itemSales = {};
-
-        txs.forEach(t => {
-            const txDate = moment(t.date);
-            if (txDate.isSameOrAfter(analysisStartDate)) {
-                const code = t.category.trim().toUpperCase();
-                const stockItemExists = stocks.some(s => s.code.toUpperCase() === code);
-                if (stockItemExists) {
-                    itemSales[code] = (itemSales[code] || 0) + 1;
-                }
-            }
-        });
-
-        const riskItems = [];
-        
-        stocks.forEach(item => {
-            const code = item.code.toUpperCase();
-            const salesCount = itemSales[code] || 0;
-            const avgDailyConsumption = salesCount > 0 ? salesCount / daysToAnalyze : 0;
-            
-            if (avgDailyConsumption > 0 && item.quantity > 0) {
-                const daysLeft = item.quantity / avgDailyConsumption;
-                const isRisk = daysLeft <= 10; 
-                
-                if (isRisk) {
-                    riskItems.push({
-                        code: item.code,
-                        name: item.name,
-                        daysLeft: Math.ceil(daysLeft),
-                        risk: isRisk
-                    });
-                }
-            }
-        });
-
-        return riskItems.sort((a,b) => a.daysLeft - b.daysLeft);
-    }
-    
-    function renderStock(){
-        const filterText = $('#stockFilter').value.toLowerCase();
-        let list = loadStock().sort((a,b)=> a.code.localeCompare(b.code));
-
-        if (filterText) {
-            list = list.filter(item => 
-                item.code.toLowerCase().includes(filterText) ||
-                item.name.toLowerCase().includes(filterText) ||
-                item.category.toLowerCase().includes(filterText)
-            );
-        }
-
-        $('#stockTable tbody').innerHTML = '';
-
-        for(const item of list){
-            const isLowStock = item.quantity < 5;
-            const quantityClass = isLowStock ? 'low-stock' : '';
-            const totalValue = item.price * item.quantity; 
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td data-label="Cód:">${escapeHtml(item.code)}</td>
-                <td data-label="Produto:">${escapeHtml(item.name)}</td>
-                <td data-label="Cat.:">${escapeHtml(item.category)}</td>
-                <td data-label="Qtde:" class="${quantityClass}">${item.quantity}</td>
-                <td data-label="Vlr Unit.:">${formatBRL(item.price)}</td>
-                <td data-label="Vlr Total:" class="stock-total-value">${formatBRL(totalValue)}</td>
-                <td><button data-code="${item.code}" aria-label="Remover item">Remover</button></td>
-            `;
-            tr.querySelector('button').addEventListener('click', (e)=> removeItem(e.target.dataset.code));
-            $('#stockTable tbody').appendChild(tr);
-        }
-        
-        const riskItems = calculateStockRisk();
-        const container = $('#stockRiskAlerts');
-        container.innerHTML = '';
-
-        if (riskItems.length > 0) {
-            const alertsHtml = riskItems.map(item => {
-                const dayLabel = item.daysLeft === 1 ? 'dia' : 'dias';
-                const dateRisk = moment().add(item.daysLeft, 'days').format('DD/MM/YYYY');
-                return `<p class="help" style="color: var(--danger); font-weight: 600; margin-bottom: 4px; margin-top: 4px;">
-                    ⚠️ Risco de esgotamento: Item '${item.name}' (Cód: ${item.code}) pode esgotar em ${item.daysLeft} ${dayLabel} (aprox. ${dateRisk}).
-                </p>`;
-            }).join('');
-            container.innerHTML = alertsHtml;
-        } else {
-            container.innerHTML = `<p class="help" style="color: var(--success); font-weight: 600; margin-top: 4px;">✅ Nenhum item está com risco de esgotamento nas próximas 10 dias.</p>`;
-        }
-    }
-    // ... (Fim das funções de Estoque)
-    
     // Inicializa o app
     render();
     renderStock();
-    renderRH(); // Inicializa o RH também
+    renderRH();
+    renderTodo(); // Inicializa as Tarefas
 
     // Seta a data de hoje no campo de data por padrão
     dateEl.value = new Date().toISOString().slice(0,10);
